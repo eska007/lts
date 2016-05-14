@@ -1,8 +1,10 @@
 package com.kaist.lts;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -32,17 +34,23 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "Success!");
                 //App code
+                Intent intent = new Intent();
+                intent.setClassName("com.kaist.lts", "com.kaist.lts.AccessManager");
+                startActivity(intent);
             }
 
             @Override
             public void onCancel() {
                 Log.d(TAG, "fail!");
                 // App code
+                Toast.makeText(getApplicationContext(), "Login failed", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onError(FacebookException exception) {
+                Log.d(TAG, "Exception!");
                 // App code
+                Toast.makeText(getApplicationContext(), "Exception!", Toast.LENGTH_SHORT).show();
             }
         });
     }
