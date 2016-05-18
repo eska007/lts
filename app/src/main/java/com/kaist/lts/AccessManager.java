@@ -1,30 +1,26 @@
 package com.kaist.lts;
 
-import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 
-public class AccessManager extends AppCompatActivity {
+/**
+ * Created by user on 2016-05-17.
+ */
+public class AccessManager {
+    static final String TAG = "[LTS] AccessManager";
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_access_manager);
-        setTitle("My Jobs");
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    public AccessManager(Context context) {
+        Log.d(TAG, "Create!");
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        //Start ClientActivity class.
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setClassName("com.kaist.lts", "com.kaist.lts.ClientActivity");
+        context.startActivity(intent);
     }
 
+    public void makeSession() {
+
+    }
 }

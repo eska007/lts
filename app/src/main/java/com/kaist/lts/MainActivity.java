@@ -1,5 +1,6 @@
 package com.kaist.lts;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -20,8 +21,10 @@ import com.facebook.login.widget.LoginButton;
 import java.security.MessageDigest;
 
 public class MainActivity extends AppCompatActivity {
-    static final String TAG = "LTS";
+    static final String TAG = "[LTS] MainActivity";
     static final String PACKAGE_NAME = "com.kaist.lts";
+    Context mContext;
+    AccessManager am;
 
     CallbackManager callbackManager;
     LoginButton loginButton;
@@ -29,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = getApplicationContext();
+
+        //Display Intro page at 1st lunch app.
         FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_main);
         facebookLogin();
@@ -57,17 +63,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void facebookLogin() {
-
         callbackManager = CallbackManager.Factory.create();
         loginButton = (LoginButton) findViewById(R.id.facebook_login);
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "Success!");
-                //App code
-                Intent intent = new Intent();
-                intent.setClassName("com.kaist.lts", "com.kaist.lts.AccessManager");
-                startActivity(intent);
+                am = new AccessManager(mContext);
             }
 
             @Override
