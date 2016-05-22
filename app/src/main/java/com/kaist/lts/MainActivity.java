@@ -2,6 +2,7 @@ package com.kaist.lts;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -21,10 +22,11 @@ import com.facebook.login.widget.LoginButton;
 import java.security.MessageDigest;
 
 public class MainActivity extends AppCompatActivity {
-    static final String TAG = "[LTS] MainActivity";
+    static final String TAG = "[LTS][MainActivity]";
     static final String PACKAGE_NAME = "com.kaist.lts";
     Context mContext;
     AccessManager am;
+    SharedPreferences mPrefs;
 
     CallbackManager callbackManager;
     LoginButton loginButton;
@@ -32,13 +34,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mContext = getApplicationContext();
+        mContext = this;//getApplicationContext();
+        mPrefs = getSharedPreferences("lts", MODE_PRIVATE);
 
         //Display Intro page at 1st lunch app.
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        setContentView(R.layout.activity_main);
-        facebookLogin();
-        getAppHashKey();
+        boolean startStatus = mPrefs.getBoolean("startup", false);
+        Log.d(TAG, "Bootup status: " + startStatus);
+        if (!startStatus) {
+            Intent intent = new Intent();
+            intent.setClassName("com.kaist.lts", "com.kaist.lts.Intro");
+            mContext.startActivity(intent);
+            finish();
+            //SharedPreferences.Editor prefEditor = mPrefs.edit();
+            //prefEditor.putBoolean("startup", true);
+        } else {
+            FacebookSdk.sdkInitialize(getApplicationContext());
+            setContentView(R.layout.activity_main);
+            facebookLogin();
+            getAppHashKey();
+        }
     }
 
     @Override
@@ -47,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
         if (callbackManager != null) {
             callbackManager.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    public SharedPreferences getSharedPref() {
+        return mPrefs;
     }
 
     private void getAppHashKey() {
