@@ -37,6 +37,8 @@ public class Intro extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mContext = this;
         setContentView(R.layout.activity_intro);
+        setTitle(R.string.title_activity_intro);
+
         Button startButton = (Button) findViewById(R.id.start_button);
         if (startButton == null) throw new AssertionError();
         startButton.setOnClickListener(new Button.OnClickListener() {
@@ -103,14 +105,14 @@ public class Intro extends AppCompatActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
         //return super.onKeyDown(keyCode, event);
-        Log.d(TAG, "onKeyDown");
+        Log.d(TAG, "onKeyUp");
 
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             moveTaskToBack(true);
             finish();
         }
-        return true;
+        return super.onKeyUp(keyCode, event);
     }
 }

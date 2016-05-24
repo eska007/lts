@@ -45,14 +45,22 @@ public class MainActivity extends AppCompatActivity {
             intent.setClassName("com.kaist.lts", "com.kaist.lts.Intro");
             mContext.startActivity(intent);
             finish();
-            //SharedPreferences.Editor prefEditor = mPrefs.edit();
-            //prefEditor.putBoolean("startup", true);
         } else {
             FacebookSdk.sdkInitialize(getApplicationContext());
             setContentView(R.layout.activity_main);
             facebookLogin();
             getAppHashKey();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     @Override
