@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.facebook.CallbackManager;
@@ -71,8 +72,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public SharedPreferences getSharedPref() {
-        return mPrefs;
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        Log.d(TAG, "onKeyUp");
+
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+            moveTaskToBack(true);
+            finish();
+        }
+        return super.onKeyUp(keyCode, event);
     }
 
     private void getAppHashKey() {
