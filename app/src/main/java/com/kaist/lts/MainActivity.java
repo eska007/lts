@@ -11,8 +11,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -25,18 +29,29 @@ import java.security.MessageDigest;
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "[LTS][MainActivity]";
     static final String PACKAGE_NAME = "com.kaist.lts";
-    Context mContext;
-    AccessManager am;
-    SharedPreferences mPrefs;
+    static private AccessManager am;
+    static private AccessToken accessToken;
+    static private AccessTokenTracker accessTokenTracker;
 
-    CallbackManager callbackManager;
-    LoginButton loginButton;
+    private Context mContext;
+    private SharedPreferences mPrefs;
+    private CallbackManager callbackManager;
+    private LoginButton loginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;//getApplicationContext();
         mPrefs = getSharedPreferences("lts", MODE_PRIVATE);
+
+        createAccessTokenTracker();
+        if (accessToken != null) {
+            //am.startClientActivity(mContext);
+            am = new AccessManager(mContext);
+            setContentView(R.layout.activity_main);
+            facebookLogin();
+            return;
+        }
 
         //Display Intro page at 1st lunch app.
         boolean startStatus = mPrefs.getBoolean("startup", false);
@@ -47,21 +62,53 @@ public class MainActivity extends AppCompatActivity {
             mContext.startActivity(intent);
             finish();
         } else {
-            FacebookSdk.sdkInitialize(getApplicationContext());
             setContentView(R.layout.activity_main);
             facebookLogin();
             getAppHashKey();
         }
     }
 
+    private void createAccessTokenTracker() {
+        Log.d(TAG, "createAccessTokenTracker");
+
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        //if (accessTokenTracker != null && accessToken != null) return;
+        accessTokenTracker = new AccessTokenTracker() {
+            @Override
+            protected void onCurrentAccessTokenChanged(
+                    AccessToken oldAccessToken,
+                    AccessToken currentAccessToken) {
+                // Set the access token using
+                // currentAccessToken when it's loaded or set.
+                accessToken = currentAccessToken;
+            }
+        };
+        // If the access token is available already assign it.
+        accessToken = AccessToken.getCurrentAccessToken();
+
+        if (accessToken != null) {
+            Log.d(TAG, "Facebook login status");
+            Log.d(TAG, "Facebook login ID : " + accessToken.getUserId());
+        }
+    }
+
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume");
         super.onResume();
     }
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause");
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy");
+        super.onDestroy();
+        accessTokenTracker.stopTracking();
     }
 
     @Override
@@ -79,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             moveTaskToBack(true);
             finish();
+            //android.os.Process.killProcess(android.os.Process.myPid());
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -98,12 +146,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void facebookLogin() {
         callbackManager = CallbackManager.Factory.create();
+
+        Button button = (Button) findViewById(R.id.button);
+        button.setVisibility(View.VISIBLE);
         loginButton = (LoginButton) findViewById(R.id.facebook_login);
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "Success!");
                 am = new AccessManager(mContext);
+                finish();
             }
 
             @Override

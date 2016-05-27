@@ -15,6 +15,11 @@ public class AccessManager {
         Log.d(TAG, "Create!");
 
         //Start ClientActivity class.
+        createSession();
+        startClientActivity(context);
+    }
+
+    public void startClientActivity(Context context) {
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setClassName("com.kaist.lts", "com.kaist.lts.ClientActivity");

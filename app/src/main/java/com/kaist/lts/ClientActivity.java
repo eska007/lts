@@ -50,7 +50,9 @@ public class ClientActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+
         //My Info
         setContentView(R.layout.activity_client);
         setTitle(R.string.title_activity_client);
@@ -82,8 +84,9 @@ public class ClientActivity extends AppCompatActivity {
         Log.d(TAG, "onKeyUp");
 
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            moveTaskToBack(true);
+            moveTaskToBack(false);
             finish();
+            android.os.Process.killProcess(android.os.Process.myPid());
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -132,6 +135,7 @@ public class ClientActivity extends AppCompatActivity {
 
     @Override
     public void onStop() {
+        Log.d(TAG, "onStop");
         super.onStop();
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.

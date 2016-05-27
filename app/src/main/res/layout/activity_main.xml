@@ -35,6 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="직접 로그인 하기" />
+        android:text="직접 로그인 하기"
+        android:visibility="invisible" />
 
 </RelativeLayout>

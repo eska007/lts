@@ -1,5 +1,6 @@
 package com.kaist.lts;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,7 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.ImageView;
 
 public class Intro extends AppCompatActivity {
     private static final String TAG = "[LTS][Intro]";
@@ -52,32 +53,7 @@ public class Intro extends AppCompatActivity {
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        //showStartUpButton();
     }
-/*
-    public void showStartUpButton() {
-        Log.d(TAG, "showStartUpButton");
-
-        Button startButton = (Button) findViewById(R.id.start_button);
-        if (startButton == null) {
-            throw new AssertionError();
-        }
-        //startButton.setVisibility(View.VISIBLE);
-        startButton.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // TODO : click event
-                SharedPreferences prefs = getSharedPreferences("lts", MODE_PRIVATE);
-                SharedPreferences.Editor prefEditor = prefs.edit();
-                prefEditor.putBoolean("startup", true);
-                prefEditor.apply();
-
-                Intent intent = new Intent();
-                intent.setClassName("com.kaist.lts", "com.kaist.lts.MainActivity");
-                mContext.startActivity(intent);
-            }
-        });
-    }*/
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -87,6 +63,7 @@ public class Intro extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             moveTaskToBack(true);
             finish();
+            android.os.Process.killProcess(android.os.Process.myPid());
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -134,19 +111,43 @@ public class Intro extends AppCompatActivity {
                     prefEditor.apply();
 
                     Intent intent = new Intent();
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     intent.setClassName("com.kaist.lts", "com.kaist.lts.MainActivity");
                     mContext.startActivity(intent);
+                    ((Activity) mContext).finish();
                 }
             });
+        }
+
+        static private void showIntroImage(View view, int pageNum) {
+            switch (pageNum) {
+                case 1:
+                    //Find People
+                    ImageView introView1 = (ImageView) view.findViewById(R.id.intro_view1);
+                    introView1.setVisibility(View.VISIBLE);
+                    break;
+                case 2:
+                    //Notification
+                    ImageView introView2 = (ImageView) view.findViewById(R.id.intro_view2);
+                    introView2.setVisibility(View.VISIBLE);
+                    break;
+                case 3:
+                    //Profiles
+                    ImageView introView3 = (ImageView) view.findViewById(R.id.intro_view3);
+                    introView3.setVisibility(View.VISIBLE);
+                    break;
+            }
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_intro, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+            //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+            //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            showIntroImage(rootView, pageViewNumber);
             if (pageViewNumber == TOTAL_VIEW_PAGE_NUMBER) {
                 showStartUpButton(rootView);
             }
@@ -176,13 +177,11 @@ public class Intro extends AppCompatActivity {
         @Override
         public int getCount() {
             // Show 3 total pages.
-            Log.d(TAG, "getCount");
             return TOTAL_VIEW_PAGE_NUMBER;
         }
 
-        @Override
+/*        @Override
         public CharSequence getPageTitle(int position) {
-            Log.d(TAG, "getPageTitle");
             switch (position) {
                 case 0:
                     return "SECTION 1";
@@ -192,8 +191,6 @@ public class Intro extends AppCompatActivity {
                     return "SECTION 3";
             }
             return null;
-        }
-
-
+        }*/
     }
 }

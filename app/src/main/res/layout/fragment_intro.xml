@@ -23,4 +23,35 @@
         android:clickable="true"
         android:text="Start"
         android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/intro_view1"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="93dp"
+        android:src="@drawable/img_find"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/intro_view2"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="93dp"
+        android:src="@drawable/img_noti"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/intro_view3"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="93dp"
+        android:src="@drawable/img_profile"
+        android:visibility="gone" />
+
 </RelativeLayout>
