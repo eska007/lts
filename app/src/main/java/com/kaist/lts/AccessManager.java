@@ -9,13 +9,12 @@ import android.util.Log;
  */
 public class AccessManager {
     static final String TAG = "[LTS] AccessManager";
-    private Session mSession;
 
     public AccessManager(Context context) {
         Log.d(TAG, "Create!");
 
         //Start ClientActivity class.
-        createSession();
+        GetSession();
         startClientActivity(context);
     }
 
@@ -26,10 +25,7 @@ public class AccessManager {
         context.startActivity(intent);
     }
 
-    public Session createSession() {
-        if (mSession == null) {
-            mSession = new Session();
-        }
-        return mSession;
+    public ISession GetSession() {
+        return Session.GetInstance();
     }
 }
