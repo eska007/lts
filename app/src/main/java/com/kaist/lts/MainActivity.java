@@ -66,6 +66,14 @@ public class MainActivity extends AppCompatActivity {
             facebookLogin();
             getAppHashKey();
         }
+
+        Button Registbutton = (Button) findViewById(R.id.button_Registration);
+        Registbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), SelectRegistration.class));
+            }
+        });
     }
 
     private void createAccessTokenTracker() {
