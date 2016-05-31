@@ -2,38 +2,26 @@ package com.kaist.lts;
 
 import android.util.Log;
 
+import org.json.simple.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 /**
  * Created by user on 2016-05-19.
  */
 public class Session implements ISession{
-    boolean is_connected;
-    String cookieString;
     static final String TAG = "[LTS][Session]";
     private static ISession instance = null;
+    boolean is_connected;
+    String cookieString;
 
-    public static synchronized ISession GetInstance() { // Singleton
-        if (instance == null) {
-            instance = (ISession) new Session();
-        }
-        Log.d(TAG, "Created");
-        return instance;
-    }
-
-    private Session(){
+    private Session() {
         is_connected = false;
         cookieString = null;
 
@@ -41,18 +29,28 @@ public class Session implements ISession{
         try {
             con = ConnectServer(null, null);
             // Get Cookie to keep the session
-            String new_cookie = con.getHeaderField("Set-Cookie");
-            if (new_cookie != null) {
-                Log.d(TAG, "Got new cookie:" + new_cookie);
-                Log.d(TAG, "Old cookie:" + cookieString);
-                cookieString = new_cookie;
+            if (con != null) {
+                String new_cookie = con.getHeaderField("Set-Cookie");
+                if (new_cookie != null) {
+                    Log.d(TAG, "Got new cookie:" + new_cookie);
+                    Log.d(TAG, "Old cookie:" + cookieString);
+                    cookieString = new_cookie;
+                }
+                is_connected = true;
             }
-            is_connected = true;
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
         Log.d(TAG, "SessionCreated");
+    }
+
+    public static synchronized ISession GetInstance() { // Singleton
+        if (instance == null) {
+            instance = new Session();
+        }
+        Log.d(TAG, "Created");
+        return instance;
     }
 
     private HttpURLConnection ConnectServer(String property_key, String property_val) throws IOException {
@@ -66,9 +64,11 @@ public class Session implements ISession{
         con.setDoInput(true);
         con.setDoOutput(true);
         con.setRequestMethod("POST");
-        if (property_key != null && property_val != null)
+        if (property_key != null && property_val != null) {
             con.setRequestProperty(property_key, property_val);
-        return con;
+            return con;
+        }
+        return null;
     }
 
     private RetVal ConvertResult(String arg)
