@@ -145,8 +145,6 @@ public class Intro extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_intro, container, false);
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
 
-            //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
             showIntroImage(rootView, pageViewNumber);
             if (pageViewNumber == TOTAL_VIEW_PAGE_NUMBER) {
                 showStartUpButton(rootView);

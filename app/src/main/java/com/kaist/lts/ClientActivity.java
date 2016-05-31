@@ -1,9 +1,11 @@
 package com.kaist.lts;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -19,14 +21,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 public class ClientActivity extends AppCompatActivity {
-    private final static String TAG = "[LTS][ClientActivity]";
+    private static final String TAG = "[LTS][ClientActivity]";
+    private static final int PICK_FILE_REQUEST = 1;
+    static Context mContext;
+    static FileHandler fh;
+    static String selectedFilePath;
+    private static PowerManager.WakeLock wakeLock;
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
      * The {@link PagerAdapter} that will provide
@@ -37,7 +46,6 @@ public class ClientActivity extends AppCompatActivity {
      * {@link FragmentStatePagerAdapter}.
      */
     private SectionsPagerAdapter mSectionsPagerAdapter;
-
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -46,11 +54,23 @@ public class ClientActivity extends AppCompatActivity {
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
+
     private GoogleApiClient client;
+
+    static private void showFileChooser(Activity activity) {
+        Intent intent = new Intent();
+        //sets the select file to all types of files
+        intent.setType("file/*");
+        //allows to select data and return it
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        //starts new activity to select file and return data
+        activity.startActivityForResult(Intent.createChooser(intent, "Choose File to Upload.."), PICK_FILE_REQUEST);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
+        mContext = this;
         super.onCreate(savedInstanceState);
 
         //My Info
@@ -66,14 +86,14 @@ public class ClientActivity extends AppCompatActivity {
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -89,6 +109,31 @@ public class ClientActivity extends AppCompatActivity {
             android.os.Process.killProcess(android.os.Process.myPid());
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == PICK_FILE_REQUEST) {
+                if (data == null) {
+                    //no data present
+                    return;
+                }
+
+                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+                wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, ClientActivity.class.getSimpleName());
+                wakeLock.acquire();
+
+                Uri selectedFileUri = data.getData();
+                selectedFilePath = FileHandler.getPath(this, selectedFileUri);
+                Log.d(TAG, "Selected File Path:" + selectedFilePath);
+
+                if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
+                    Toast.makeText(this, "upload file selected", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 
     @Override
@@ -179,21 +224,58 @@ public class ClientActivity extends AppCompatActivity {
             return fragment;
         }
 
+        /**
+         * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+         * one of the sections/tabs/pages.
+         */
+        static public void showUpload(Activity activity, View view, int pageNum) {
+            final Activity ac = activity;
+            if (pageNum == 2) {
+
+                Log.d(TAG, "Show Upload items");
+                ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
+                if (attachIcon != null) {
+                    attachIcon.setVisibility(View.VISIBLE);
+                    attachIcon.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            fh = new FileHandler();
+                            showFileChooser(ac);
+
+                        }
+                    });
+                }
+
+                Button uploadButton = (Button) view.findViewById(R.id.upload_button);
+                if (uploadButton != null) {
+                    uploadButton.setVisibility(View.VISIBLE);
+                    uploadButton.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (fh != null) {
+                                FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+            Log.d(TAG, "onCreateView");
+
             View rootView = inflater.inflate(R.layout.fragment_client, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
+            showUpload(getActivity(), rootView, pageViewNumber);
+            //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+            //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 
             return rootView;
         }
     }
 
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public SectionsPagerAdapter(FragmentManager fm) {
