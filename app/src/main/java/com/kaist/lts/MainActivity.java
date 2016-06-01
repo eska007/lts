@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private Context mContext;
     private SharedPreferences mPrefs;
     private CallbackManager callbackManager;
-    private LoginButton loginButton;
+    private LoginButton facebookLoginButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +72,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getApplicationContext(), SelectRegistration.class));
+            }
+        });
+
+        Button loginButton = (Button) findViewById(R.id.buttonLogin);
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), Login.class));
             }
         });
     }
@@ -154,14 +162,13 @@ public class MainActivity extends AppCompatActivity {
     private void facebookLogin() {
         callbackManager = CallbackManager.Factory.create();
 
-        Button button = (Button) findViewById(R.id.button);
-        button.setVisibility(View.VISIBLE);
-        loginButton = (LoginButton) findViewById(R.id.facebook_login);
-        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+        facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login);
+        facebookLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "Success!");
                 am = new AccessManager(mContext);
+                // TODO: Get profile information from Facebook. (at least ID)
                 finish();
             }
 

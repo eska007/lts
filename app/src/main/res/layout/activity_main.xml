@@ -7,14 +7,14 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.kaist.lts.MainActivity">
+    tools:context="com.kaist.lts.MainActivity"
     android:background="#ffffff">
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/facebook_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button"
+        android:layout_above="@+id/buttonLogin"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="40dp" />
@@ -29,22 +29,23 @@
         android:src="@drawable/img_start" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/buttonLogin"
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignStart="@+id/imageView"
         android:text="직접 로그인 하기"
-        android:visibility="invisible" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <Button
         android:id="@+id/button_Registration"
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="회원가입"
         android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/button"
-        android:text="회원가입" />
+        android:layout_toLeftOf="@+id/imageView"
+        android:layout_toStartOf="@+id/imageView" />
 
 </RelativeLayout>

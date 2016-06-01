@@ -91,16 +91,15 @@ public class Session implements ISession{
     }
 
     @Override
-    public RetVal Send(JSONObject profiles) {
-
+    public RetVal Send(JSONObject data) {
         try{
             //HttpURLConnection con = ConnectServer("content-type", "application/x-www-form-urlencoded");
             HttpURLConnection con = ConnectServer("Content-Type", "application/json");
 
             // Send data
             OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
-            Log.d(TAG, "json:" + profiles.toString());
-            osw.write(profiles.toString());
+            Log.d(TAG, "json:" + data.toString());
+            osw.write(data.toString());
             osw.flush();
             osw.close();
 
@@ -113,15 +112,6 @@ public class Session implements ISession{
                 result += line;
             }
             return ConvertResult(result);
-	        /*
-        	try {
-	        	JSONParser jsonParser = new JSONParser();
-	        	JSONArray jsonArray = (JSONArray) jsonParser.parse(result);
-	        	Log.d(TAG, "return : "+jsonArray.get(0));
-        	} catch (ParseException e) {
-    			e.printStackTrace();
-    		}
-    		*/
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

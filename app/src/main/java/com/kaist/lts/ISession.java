@@ -15,7 +15,7 @@ public interface ISession {
         RET_PARAM_ERROR;
     }
 
-    public RetVal Send(JSONObject profiles);
+    public RetVal Send(JSONObject data);
 }
 
 interface SubscribeCb {
