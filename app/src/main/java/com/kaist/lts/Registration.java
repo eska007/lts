@@ -6,11 +6,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.json.simple.JSONObject;
 
 public class Registration extends AppCompatActivity {
 
+    static final String TAG = "[LTS][Registration]";
     private EditText idEt;
     private EditText passwordEt;
     private EditText repasswordEt;
@@ -24,7 +26,6 @@ public class Registration extends AppCompatActivity {
     private EditText addressEt;
     private Button registrationButton;
 
-    static final String TAG = "[LTS][Registration]";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +62,7 @@ public class Registration extends AppCompatActivity {
                         || surname.isEmpty() || phone.isEmpty() || email.isEmpty()
                         || country.isEmpty() || address.isEmpty()) {
                     // TODO: Show error popup!
-                    Log.e(TAG, "some missing profiles");
+                    Toast.makeText(getApplicationContext(), "Fill the all items", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
