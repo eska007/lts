@@ -233,6 +233,7 @@ public class FileHandler {
         } else {
             try {
                 FileInputStream fileInputStream = new FileInputStream(selectedFile);
+
                 URL url = new URL(SERVER_URL);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setDoInput(true);//Allow Inputs
@@ -264,7 +265,6 @@ public class FileHandler {
 
                 //reads bytes from FileInputStream(from 0th index of buffer to buffersize)
                 bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-
 
                 //loop repeats till bytesRead = -1, i.e., no bytes are left to read
                 while (bytesRead > 0) {

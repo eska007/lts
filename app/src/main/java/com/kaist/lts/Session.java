@@ -1,5 +1,6 @@
 package com.kaist.lts;
 
+import android.os.StrictMode;
 import android.util.Log;
 
 import org.json.simple.JSONObject;
@@ -16,59 +17,61 @@ import java.net.URL;
  * Created by user on 2016-05-19.
  */
 public class Session implements ISession{
-    static final String TAG = "[LTS][Session]";
-    private static ISession instance = null;
-    boolean is_connected;
-    String cookieString;
+    final static String TAG = "[LTS][Session]";
+
+    private static ISession instance;
+    String currentCookie;
+    boolean isConnected = false;
 
     private Session() {
-        is_connected = false;
-        cookieString = null;
+
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy =
+                    new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
 
         HttpURLConnection con;
         try {
             con = ConnectServer(null, null);
             // Get Cookie to keep the session
             if (con != null) {
-                String new_cookie = con.getHeaderField("Set-Cookie");
-                if (new_cookie != null) {
-                    Log.d(TAG, "Got new cookie:" + new_cookie);
-                    Log.d(TAG, "Old cookie:" + cookieString);
-                    cookieString = new_cookie;
+                String newCookie = con.getHeaderField("Set-Cookie");
+                if (newCookie != null) {
+                    Log.d(TAG, "new cookie: " + newCookie);
+                    currentCookie = newCookie;
                 }
-                is_connected = true;
+                isConnected = true;
             }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        Log.d(TAG, "SessionCreated");
+        Log.d(TAG, "Session cookie: " + currentCookie + ", connect: " + isConnected);
     }
 
     public static synchronized ISession GetInstance() { // Singleton
         if (instance == null) {
             instance = new Session();
         }
-        Log.d(TAG, "Created");
         return instance;
     }
 
     private HttpURLConnection ConnectServer(String property_key, String property_val) throws IOException {
         URL url = new URL("http://52.78.20.109/main2.php");
-        HttpURLConnection con = (HttpURLConnection)url.openConnection();
-        if (cookieString != null) {
-            con.setRequestProperty("cookie", cookieString);
-            Log.d(TAG, "Reuse cookie:" + cookieString);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setDoOutput(true);
+        if (currentCookie != null) {
+            con.setRequestProperty("cookie", currentCookie);
+            Log.d(TAG, "Reuse cookie:" + currentCookie);
         }
         con.setDefaultUseCaches(false);
         con.setDoInput(true);
-        con.setDoOutput(true);
         con.setRequestMethod("POST");
         if (property_key != null && property_val != null) {
             con.setRequestProperty(property_key, property_val);
-            return con;
         }
-        return null;
+        return con;
     }
 
     private RetVal ConvertResult(String arg)

@@ -8,11 +8,11 @@ import android.util.Log;
  * Created by user on 2016-05-17.
  */
 public class AccessManager {
-    static final String TAG = "[LTS] AccessManager";
-
+    static final String TAG = "[LTS][AccessManager]";
+    Context mContext;
     public AccessManager(Context context) {
-        Log.d(TAG, "Create!");
-
+        Log.d(TAG, "Create");
+        mContext = context;
         //Start ClientActivity class.
         GetSession();
         startClientActivity(context);

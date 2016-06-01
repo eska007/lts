@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
         accessToken = AccessToken.getCurrentAccessToken();
 
         if (accessToken != null) {
-            Log.d(TAG, "Facebook login status");
             Log.d(TAG, "Facebook login ID : " + accessToken.getUserId());
         }
     }
