@@ -16,6 +16,7 @@ public interface ISession {
     }
 
     public RetVal Send(JSONObject data);
+    public RetVal SendRequest(JSONObject input, JSONObject output);
 }
 
 interface SubscribeCb {

@@ -4,6 +4,8 @@ import android.os.StrictMode;
 import android.util.Log;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Iterator;
 
 /**
  * Created by user on 2016-05-19.
@@ -60,6 +63,10 @@ public class Session implements ISession{
     private HttpURLConnection ConnectServer(String property_key, String property_val) throws IOException {
         URL url = new URL("http://52.78.20.109/main2.php");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        if (con == null) {
+            throw new IOException("HttpURLConnection.openConnection failed");
+		}
+
         con.setDoOutput(true);
         if (currentCookie != null) {
             con.setRequestProperty("cookie", currentCookie);
@@ -117,6 +124,59 @@ public class Session implements ISession{
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        return ISession.RetVal.RET_FAIL;
+    }
+
+    public RetVal SendRequest(JSONObject input, JSONObject output) {
+        if (input == null || output == null) {
+            return ISession.RetVal.RET_PARAM_ERROR;
+        }
+
+        String received_data = null;
+        try{
+            //HttpURLConnection con = ConnectServer("content-type", "application/x-www-form-urlencoded");
+            HttpURLConnection con = ConnectServer("Content-Type", "application/json");
+
+            // Send data
+            OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
+            System.out.println("json:" + input.toString());
+            osw.write(input.toString());
+            osw.flush();
+            osw.close();
+
+            // Receive data
+            BufferedReader rd = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+            String line;
+            received_data = new String();
+            while((line = rd.readLine()) != null){
+                System.out.println("return1 : " + line);
+                received_data += line;
+            }
+
+            // Convert received binary to JSON format
+            JSONParser jsonParser = new JSONParser();
+            JSONObject obj = (JSONObject) jsonParser.parse(received_data);
+            Iterator<Object> itr = obj.keySet().iterator();
+            while(itr.hasNext()) {
+                Object key = itr.next();
+                Object val = obj.get(key);
+                output.put(key, val);
+            }
+
+            System.out.println("return2 : " + output.toString());
+            return ISession.RetVal.RET_OK;
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (ClassCastException e) {
+            // If it's not in logged-in state, received_data may not be json format.
+            e.printStackTrace();
+            return ConvertResult(received_data);
         }
         return ISession.RetVal.RET_FAIL;
     }

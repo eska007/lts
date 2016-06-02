@@ -18,7 +18,6 @@ import org.json.simple.JSONObject;
 public class Login extends AppCompatActivity {
     // TODO: Decide the type of Login class (activity? or..)
     private MessageHandler mainHandler = null;
-    static final int RESULT_LOGIN = 0;
     static final String TAG = "[LTS][Login]";
 
     private EditText idEt;
@@ -54,7 +53,7 @@ public class Login extends AppCompatActivity {
                         boolean ret = log_in(Session.GetInstance(), generateJson(id, pw));
                         //boolean ret = log_in(Session.GetInstance(), generateJson("test_id", "1234"));
                         Message msg = mainHandler.obtainMessage();
-                        msg.what = RESULT_LOGIN;
+                        msg.what = MessageHandler.RESULT_LOGIN;
                         msg.arg1 = ret ? MessageHandler.SUCCESS:MessageHandler.FAILED;
                         mainHandler.sendMessage(msg); // send a result to main UI thread
                     }
@@ -66,6 +65,7 @@ public class Login extends AppCompatActivity {
     }
 
     class MessageHandler extends Handler {
+        final static int RESULT_LOGIN = 0;
         final static int SUCCESS = 1;
         final static int FAILED = 0;
         @Override
@@ -75,7 +75,6 @@ public class Login extends AppCompatActivity {
                 case RESULT_LOGIN:
                     if (msg.arg1 == SUCCESS) {
                         Log.d(TAG, "Login Success");
-                        // TODO: GOTO CLIENT ACTIVITY
                         startActivity(new Intent(getApplicationContext(), ClientActivity.class));
                         finish();
                     } else {

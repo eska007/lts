@@ -48,4 +48,12 @@
         android:layout_toLeftOf="@+id/imageView"
         android:layout_toStartOf="@+id/imageView" />
 
+    <Button
+        android:id="@+id/buttonTest"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test"
+        android:layout_alignParentTop="true"/>
+
 </RelativeLayout>

@@ -7,11 +7,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewDebug;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -23,6 +25,9 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.common.server.converter.StringToIntConverter;
+
+import org.json.simple.JSONObject;
 
 import java.security.MessageDigest;
 
@@ -80,6 +85,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(getApplicationContext(), Login.class));
+            }
+        });
+
+        Button testButton = (Button) findViewById(R.id.buttonTest);
+        testButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Runnable run = new Runnable() {
+                    @Override
+                    public void run() {
+                        ISession ss = Session.GetInstance();
+                        JSONObject input = new JSONObject();
+                        JSONObject output = new JSONObject();
+                        input.put("command", "GET_USER_MODE");
+                        ISession.RetVal ret = ss.SendRequest(input, output);
+                        Log.d(TAG, "Ret : "+ret);
+                    }
+                };
+                Thread bg = new Thread(run);
+                bg.start();
             }
         });
     }
