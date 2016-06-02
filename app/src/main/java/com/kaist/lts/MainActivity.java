@@ -23,6 +23,8 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.common.server.converter.StringToIntConverter;
@@ -35,8 +37,10 @@ public class MainActivity extends AppCompatActivity {
     static final String TAG = "[LTS][MainActivity]";
     static final String PACKAGE_NAME = "com.kaist.lts";
     static private AccessManager am;
-    static private AccessToken accessToken;
     static private AccessTokenTracker accessTokenTracker;
+    static private AccessToken accessToken;
+    static private ProfileTracker profileTracker;
+    static private Profile profile;
 
     private Context mContext;
     private SharedPreferences mPrefs;
@@ -49,10 +53,11 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;//getApplicationContext();
         mPrefs = getSharedPreferences("lts", MODE_PRIVATE);
 
-        createAccessTokenTracker();
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        accessToken = AccessToken.getCurrentAccessToken();
+
         if (accessToken != null) {
-            //am.startClientActivity(mContext);
-            am = new AccessManager(mContext);
+            createAccessManager();
             setContentView(R.layout.activity_main);
             facebookLogin();
             return;
@@ -62,10 +67,7 @@ public class MainActivity extends AppCompatActivity {
         boolean startStatus = mPrefs.getBoolean("startup", false);
         Log.d(TAG, "Bootup status: " + startStatus);
         if (!startStatus) {
-            Intent intent = new Intent();
-            intent.setClassName("com.kaist.lts", "com.kaist.lts.Intro");
-            mContext.startActivity(intent);
-            finish();
+            startIntroActivity();
         } else {
             setContentView(R.layout.activity_main);
             facebookLogin();
@@ -76,7 +78,8 @@ public class MainActivity extends AppCompatActivity {
         Registbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), SelectRegistration.class));
+                mContext.startActivity(new Intent(mContext, SelectRegistration.class));
+                finish();
             }
         });
 
@@ -109,10 +112,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void createAccessTokenTracker() {
-        Log.d(TAG, "createAccessTokenTracker");
+    private void startIntroActivity() {
+        Intent intent = new Intent();
+        intent.setClassName("com.kaist.lts", "com.kaist.lts.Intro");
+        mContext.startActivity(intent);
+        finish();
+    }
 
-        FacebookSdk.sdkInitialize(getApplicationContext());
+    private void createFacebookTracker() {
+        Log.d(TAG, "createFacebookTracker");
+
         //if (accessTokenTracker != null && accessToken != null) return;
         accessTokenTracker = new AccessTokenTracker() {
             @Override
@@ -121,14 +130,31 @@ public class MainActivity extends AppCompatActivity {
                     AccessToken currentAccessToken) {
                 // Set the access token using
                 // currentAccessToken when it's loaded or set.
+                this.stopTracking();
                 accessToken = currentAccessToken;
             }
         };
         // If the access token is available already assign it.
         accessToken = AccessToken.getCurrentAccessToken();
 
-        if (accessToken != null) {
-            Log.d(TAG, "Facebook login ID : " + accessToken.getUserId());
+/*        if (accessToken != null) {
+            Log.d(TAG, "Facebook user ID : " + accessToken.getUserId());
+        }*/
+
+        profileTracker = new ProfileTracker() {
+            @Override
+            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                this.stopTracking();
+                Profile.setCurrentProfile(currentProfile);
+                profile = currentProfile;
+            }
+        };
+        profile = Profile.getCurrentProfile();
+        profileTracker.startTracking();
+
+        if (profile != null) {
+            Log.d(TAG, "Facebook login ID: " + profile.getId());
+            Log.d(TAG, "Facebook Name: " + profile.getLastName() + profile.getFirstName());
         }
     }
 
@@ -148,7 +174,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d(TAG, "onDestroy");
         super.onDestroy();
-        accessTokenTracker.stopTracking();
+        releaseTracker();
+    }
+
+    private void releaseTracker() {
+        if (accessTokenTracker != null) {
+            accessTokenTracker.stopTracking();
+        }
+        if (profileTracker != null) {
+            profileTracker.stopTracking();
+        }
     }
 
     @Override
@@ -192,8 +227,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "Success!");
-                am = new AccessManager(mContext);
-                // TODO: Get profile information from Facebook. (at least ID)
+
+                createFacebookTracker();
+                createAccessManager();
                 finish();
             }
 
@@ -211,5 +247,13 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Exception!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void createAccessManager() {
+        if (am == null) {
+            am = new AccessManager(mContext);
+        } else {
+            am.startClientActivity(mContext);
+        }
     }
 }

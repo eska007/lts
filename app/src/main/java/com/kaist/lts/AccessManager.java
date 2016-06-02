@@ -9,10 +9,8 @@ import android.util.Log;
  */
 public class AccessManager {
     static final String TAG = "[LTS][AccessManager]";
-    Context mContext;
     public AccessManager(Context context) {
         Log.d(TAG, "Create");
-        mContext = context;
         //Start ClientActivity class.
         GetSession();
         startClientActivity(context);
