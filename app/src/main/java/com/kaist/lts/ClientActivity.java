@@ -1,10 +1,13 @@
 package com.kaist.lts;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.PowerManager;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
@@ -32,10 +35,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 public class ClientActivity extends AppCompatActivity {
     private static final String TAG = "[LTS][ClientActivity]";
     private static final int PICK_FILE_REQUEST = 1;
+    public static int TIME_OUT = 0;
     static Context mContext;
     static FileHandler fh;
     static String selectedFilePath;
     private static PowerManager.WakeLock wakeLock;
+    private static Handler mHandler;
+    private static ProgressDialog dialog;
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
      * The {@link PagerAdapter} that will provide
@@ -78,7 +84,18 @@ public class ClientActivity extends AppCompatActivity {
                     new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
-
+        //Create Handler
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                //super.handleMessage(msg);
+                if (msg.what == TIME_OUT) {
+                    if (dialog != null) {
+                        dialog.dismiss();
+                    }
+                }
+            }
+        };
         //My Info
         setContentView(R.layout.activity_client);
         setTitle(R.string.title_activity_client);
@@ -260,7 +277,9 @@ public class ClientActivity extends AppCompatActivity {
                         public void onClick(View v) {
                             if (fh != null) {
                                 Log.d(TAG, "Display progress bar");
+                                dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
                                 FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
+                                mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
                             }
                         }
                     });

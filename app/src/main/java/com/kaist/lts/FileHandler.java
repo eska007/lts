@@ -1,6 +1,5 @@
 package com.kaist.lts;
 
-import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
@@ -172,20 +171,20 @@ public class FileHandler {
     public static void createUploadThread(Context context, String filePath, PowerManager.WakeLock wakeLock) {
         final Context c = context;
         final String fp = filePath;
+
+
         mWakeLock = wakeLock;
 
         Handler mHandler = new Handler(Looper.getMainLooper());
         mHandler.postDelayed(new Runnable() {
-
             @Override
             public void run() {
-                final ProgressDialog dialog = ProgressDialog.show(c, "", "Uploading File...", true);
                 try {
                     //creating new thread to handle Http Operations
                     // DEBUG
                     // Toast.makeText(c, "Upload File", Toast.LENGTH_SHORT).show();
-                    uploadFile(c, fp, dialog);
-                    dialog.dismiss();
+                    uploadFile(c, fp);
+
                 } catch (OutOfMemoryError e) {
 
                     runOnUiThread(new Runnable() {
@@ -194,14 +193,14 @@ public class FileHandler {
                             Toast.makeText(c, "Insufficient Memory!", Toast.LENGTH_SHORT).show();
                         }
                     });
-                    dialog.dismiss();
+
                 }
 
             }
-        }, 0);
+        }, 3000);
     }
 
-    private static int uploadFile(final Context c, final String path, ProgressDialog dialog) {
+    private static int uploadFile(final Context c, final String path) {
         Log.d(TAG, "uploadFile: " + path);
         HttpURLConnection connection;
         DataOutputStream dataOutputStream;
