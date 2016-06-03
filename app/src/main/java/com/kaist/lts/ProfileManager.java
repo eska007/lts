@@ -16,7 +16,7 @@ public class ProfileManager {
         public static final int REVIEWER = 2;
     }
 
-    public static void getUserMode(ISession cs) {
+    public static int getUserMode(ISession cs) {
         // Fill profiles
         JSONObject profiles = new JSONObject();
         profiles.put("command", "GET_USER_MODE");
@@ -25,5 +25,14 @@ public class ProfileManager {
         JSONObject output = new JSONObject();
         ISession.RetVal ret = cs.SendRequest(profiles, output);
         Log.d(TAG, "getUserMode result : " + output.toString());
+        if (ret != ISession.RetVal.RET_OK)
+            return -1;
+        switch((int)output.get("user_mode")) {
+            case 0: return USER_MODE.REQUESTER;
+            case 1: return USER_MODE.TRANSLATOR;
+            case 2: return USER_MODE.REVIEWER;
+            default: break;
+        }
+        return -1;
     }
 }

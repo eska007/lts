@@ -159,6 +159,7 @@ public class Session implements ISession{
             // Convert received binary to JSON format
             JSONParser jsonParser = new JSONParser();
             JSONObject obj = (JSONObject) jsonParser.parse(received_data);
+            //// deep copy the json data
             Iterator<Object> itr = obj.keySet().iterator();
             while(itr.hasNext()) {
                 Object key = itr.next();
