@@ -2,21 +2,26 @@ package com.kaist.lts;
 
 import org.json.simple.JSONObject;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+
 /**
  * Created by Administrator on 2016-05-30.
  */
 public interface ISession {
+    RetVal Send(JSONObject data);
+
+    RetVal SendRequest(JSONObject input, JSONObject output);
+
+    HttpURLConnection ConnectServer(String addr, String property_key, String property_val) throws IOException;
     enum RetVal {
         RET_OK,
         RET_FAIL,
         RET_NETWORK_ERROR,
         RET_DATABASE_ERROR,
         RET_DATABASE_DUPLICATED_ERROR,
-        RET_PARAM_ERROR;
+        RET_PARAM_ERROR
     }
-
-    public RetVal Send(JSONObject data);
-    public RetVal SendRequest(JSONObject input, JSONObject output);
 }
 
 interface SubscribeCb {
@@ -24,16 +29,19 @@ interface SubscribeCb {
 }
 
 interface IRequesterSession extends ISession {
-    public boolean Request(JSONObject obj);
-    public boolean Subscribe(SubscribeCb callback);
+    boolean Request(JSONObject obj);
+
+    boolean Subscribe(SubscribeCb callback);
 }
 
 interface ITranslatorSession extends ISession {
-    public boolean Request(JSONObject obj);
-    public boolean Subscribe(SubscribeCb callback);
+    boolean Request(JSONObject obj);
+
+    boolean Subscribe(SubscribeCb callback);
 }
 
 interface IReviewerSession extends ISession {
-    public boolean Request(JSONObject obj);
-    public boolean Subscribe(SubscribeCb callback);
+    boolean Request(JSONObject obj);
+
+    boolean Subscribe(SubscribeCb callback);
 }

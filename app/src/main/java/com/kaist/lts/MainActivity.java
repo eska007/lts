@@ -7,13 +7,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewDebug;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -27,7 +25,6 @@ import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
-import com.google.android.gms.common.server.converter.StringToIntConverter;
 
 import org.json.simple.JSONObject;
 
@@ -57,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         accessToken = AccessToken.getCurrentAccessToken();
 
         if (accessToken != null) {
+            Log.d(TAG, "Load the Client info");
             createAccessManager();
             setContentView(R.layout.activity_main);
             facebookLogin();

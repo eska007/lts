@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.os.StrictMode;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -23,7 +24,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -72,6 +72,12 @@ public class ClientActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate");
         mContext = this;
         super.onCreate(savedInstanceState);
+
+        if (android.os.Build.VERSION.SDK_INT > 9) {
+            StrictMode.ThreadPolicy policy =
+                    new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
 
         //My Info
         setContentView(R.layout.activity_client);
@@ -129,9 +135,9 @@ public class ClientActivity extends AppCompatActivity {
                 selectedFilePath = FileHandler.getPath(this, selectedFileUri);
                 Log.d(TAG, "Selected File Path:" + selectedFilePath);
 
-                if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
+/*                if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
                     Toast.makeText(this, "upload file selected", Toast.LENGTH_SHORT).show();
-                }
+                }*/
             }
         }
     }
@@ -253,6 +259,7 @@ public class ClientActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View v) {
                             if (fh != null) {
+                                Log.d(TAG, "Display progress bar");
                                 FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
                             }
                         }

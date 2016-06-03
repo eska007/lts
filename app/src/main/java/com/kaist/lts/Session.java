@@ -21,6 +21,7 @@ import java.util.Iterator;
  */
 public class Session implements ISession{
     final static String TAG = "[LTS][Session]";
+    final static String MAIN_PAGE = "http://52.78.20.109/main2.php";
 
     private static ISession instance;
     String currentCookie;
@@ -36,7 +37,7 @@ public class Session implements ISession{
 
         HttpURLConnection con;
         try {
-            con = ConnectServer(null, null);
+            con = ConnectServer(MAIN_PAGE, null, null);
             // Get Cookie to keep the session
             if (con != null) {
                 String newCookie = con.getHeaderField("Set-Cookie");
@@ -60,8 +61,9 @@ public class Session implements ISession{
         return instance;
     }
 
-    private HttpURLConnection ConnectServer(String property_key, String property_val) throws IOException {
-        URL url = new URL("http://52.78.20.109/main2.php");
+    @Override
+    public HttpURLConnection ConnectServer(String addr, String property_key, String property_val) throws IOException {
+        URL url = new URL(addr);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         if (con == null) {
             throw new IOException("HttpURLConnection.openConnection failed");
@@ -101,7 +103,7 @@ public class Session implements ISession{
     public RetVal Send(JSONObject data) {
         try{
             //HttpURLConnection con = ConnectServer("content-type", "application/x-www-form-urlencoded");
-            HttpURLConnection con = ConnectServer("Content-Type", "application/json");
+            HttpURLConnection con = ConnectServer(MAIN_PAGE, "Content-Type", "application/json");
 
             // Send data
             OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
@@ -136,7 +138,7 @@ public class Session implements ISession{
         String received_data = null;
         try{
             //HttpURLConnection con = ConnectServer("content-type", "application/x-www-form-urlencoded");
-            HttpURLConnection con = ConnectServer("Content-Type", "application/json");
+            HttpURLConnection con = ConnectServer(MAIN_PAGE, "Content-Type", "application/json");
 
             // Send data
             OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream(), "UTF-8");

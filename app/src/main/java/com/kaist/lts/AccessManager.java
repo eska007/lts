@@ -8,12 +8,19 @@ import android.util.Log;
  * Created by user on 2016-05-17.
  */
 public class AccessManager {
-    static final String TAG = "[LTS][AccessManager]";
+    private static AccessManager am;
+    final String TAG = "[LTS][AccessManager]";
+
     public AccessManager(Context context) {
         Log.d(TAG, "Create");
+        am = this;
         //Start ClientActivity class.
         GetSession();
         startClientActivity(context);
+    }
+
+    static public AccessManager getAccessManager() {
+        return am;
     }
 
     public void startClientActivity(Context context) {
@@ -26,4 +33,5 @@ public class AccessManager {
     public ISession GetSession() {
         return Session.GetInstance();
     }
+
 }

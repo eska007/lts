@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
-import java.net.URL;
 
 import static com.google.android.gms.internal.zzir.runOnUiThread;
 
@@ -32,7 +31,7 @@ import static com.google.android.gms.internal.zzir.runOnUiThread;
  */
 public class FileHandler {
     private static final String TAG = "[LTS][FileHandler]";
-    private static final String SERVER_URL = "http://52.78.20.109/UploadToServer.php";
+    private static final String SERVER_UPLOAD_URL = "http://52.78.20.109/upload.php";
     private static PowerManager.WakeLock mWakeLock;
 
     public static String getPath(final Context context, final Uri uri) {
@@ -174,19 +173,19 @@ public class FileHandler {
         final Context c = context;
         final String fp = filePath;
         mWakeLock = wakeLock;
-        final ProgressDialog dialog =
-                ProgressDialog.show(c, "", "Uploading File...", true);
 
         Handler mHandler = new Handler(Looper.getMainLooper());
         mHandler.postDelayed(new Runnable() {
+
             @Override
             public void run() {
-
+                final ProgressDialog dialog = ProgressDialog.show(c, "", "Uploading File...", true);
                 try {
                     //creating new thread to handle Http Operations
                     // DEBUG
                     // Toast.makeText(c, "Upload File", Toast.LENGTH_SHORT).show();
                     uploadFile(c, fp, dialog);
+                    dialog.dismiss();
                 } catch (OutOfMemoryError e) {
 
                     runOnUiThread(new Runnable() {
@@ -203,7 +202,7 @@ public class FileHandler {
     }
 
     private static int uploadFile(final Context c, final String path, ProgressDialog dialog) {
-
+        Log.d(TAG, "uploadFile: " + path);
         HttpURLConnection connection;
         DataOutputStream dataOutputStream;
         String lineEnd = "\r\n";
@@ -221,7 +220,6 @@ public class FileHandler {
         final String fileName = parts[parts.length - 1];
 
         if (!selectedFile.isFile()) {
-            dialog.dismiss();
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -233,18 +231,32 @@ public class FileHandler {
         } else {
             try {
                 FileInputStream fileInputStream = new FileInputStream(selectedFile);
-
-                URL url = new URL(SERVER_URL);
+                AccessManager am = AccessManager.getAccessManager();
+                if (am != null) {
+                    Log.d(TAG, "Try to connect server via open session");
+                    ISession s = am.GetSession();
+                    connection = s.ConnectServer(SERVER_UPLOAD_URL, null, null);
+                    connection.setRequestProperty("Connection", "Keep-Alive");
+                    connection.setRequestProperty("ENCTYPE", "multipart/form-data");
+                    connection.setRequestProperty(
+                            "Content-Type", "multipart/form-data;boundary=" + boundary);
+                    connection.setRequestProperty("uploaded_file", path);
+                } else {
+                    return 0;
+                }
+                /*URL url = new URL(SERVER_URL);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setDoInput(true);//Allow Inputs
                 connection.setDoOutput(true);//Allow Outputs
                 connection.setUseCaches(false);//Don't use a cached Copy
                 connection.setRequestMethod("POST");
+
                 connection.setRequestProperty("Connection", "Keep-Alive");
                 connection.setRequestProperty("ENCTYPE", "multipart/form-data");
                 connection.setRequestProperty(
                         "Content-Type", "multipart/form-data;boundary=" + boundary);
                 connection.setRequestProperty("uploaded_file", path);
+                */
 
                 //creating new dataoutputstream
                 dataOutputStream = new DataOutputStream(connection.getOutputStream());
@@ -268,7 +280,6 @@ public class FileHandler {
 
                 //loop repeats till bytesRead = -1, i.e., no bytes are left to read
                 while (bytesRead > 0) {
-
                     try {
                         //write the bytes read from inputstream
                         dataOutputStream.write(buffer, 0, bufferSize);
@@ -340,7 +351,6 @@ public class FileHandler {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            dialog.dismiss();
             return serverResponseCode;
         }
     }
