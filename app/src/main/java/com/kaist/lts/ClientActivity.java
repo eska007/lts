@@ -185,7 +185,11 @@ public class ClientActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
 
-        new Notifier(Notifier.Command.NEW_TRANSLATION_REQUEST /*TODO: Add Android handler(?) to get notification */);
+        final int mode =ProfileManager.getUserMode(Session.GetInstance());
+        if (mode == ProfileManager.USER_MODE.TRANSLATOR
+                || mode == ProfileManager.USER_MODE.REVIEWER) {
+            new Notifier(Notifier.Command.NEW_TRANSLATION_REQUEST, this.getApplicationContext());
+        }
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.

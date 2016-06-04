@@ -1,6 +1,12 @@
 package com.kaist.lts;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Message;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 
@@ -14,6 +20,7 @@ public class Notifier {
 
     private Command mCmd;
     private int mRequestID = -1;
+    Context mContext;
 
     public enum Command{
         NEW_TRANSLATION_REQUEST("GET_NEW_TRANSLATION_REQUEST"), // by Translator and Requester, Invoke whenever
@@ -36,14 +43,16 @@ public class Notifier {
     private Notifier() { // Prevent invalid construction
     }
 
-    public Notifier(Command cmd, int req_id /* TODO: Add handler to get return values*/) {
+    public Notifier(Command cmd, int req_id, Context context) {
         mCmd = cmd;
         mRequestID = req_id;
+        mContext = context;
         StartMonitoring();
     }
 
-    public Notifier(Command cmd /* TODO: Add handler to get return values*/) {
+    public Notifier(Command cmd, Context context) {
         mCmd = cmd;
+        mContext = context;
         StartMonitoring();
     }
 
@@ -63,6 +72,26 @@ public class Notifier {
                     ISession.RetVal ret = ss.SendRequest(input, output);
                     if (ret == ISession.RetVal.RET_OK) {
                         // TODO: Send 'output' and request_id(if exist) to caller through callback.
+                        PendingIntent intent = PendingIntent.getActivity(mContext, 0,
+                                new Intent(mContext, ClientActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                        NotificationManager nm = (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext)
+                                .setSmallIcon(R.drawable.ic_stat_new_message)
+                                .setTicker("LTS Notification Ticker")
+                                .setContentIntent(intent)
+                                .setContentTitle(mCmd.get())
+                                .setVibrate(new long [] {0, 1000})
+                                .setAutoCancel(true);
+
+                        String id;
+                        if (output.get("new_request") != null)
+                            id = (String) output.get("new_request");
+                        else if (output.get("id") != null)
+                            id = (String) output.get("id");
+                        else
+                            id = output.toString();
+                        builder.setContentText("Request ID : " + id);
+                        nm.notify(0, builder.build());
                         break;
                     }
 

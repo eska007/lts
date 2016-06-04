@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
 
         FacebookSdk.sdkInitialize(getApplicationContext());
         accessToken = AccessToken.getCurrentAccessToken();
-
         if (accessToken != null) {
             Log.d(TAG, "Load the Client info");
             createAccessManager();

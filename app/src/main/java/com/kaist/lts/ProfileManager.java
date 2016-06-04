@@ -27,7 +27,8 @@ public class ProfileManager {
         Log.d(TAG, "getUserMode result : " + output.toString());
         if (ret != ISession.RetVal.RET_OK)
             return -1;
-        switch((int)output.get("user_mode")) {
+        String mode = (String) output.get("user_mode");
+        switch(Integer.parseInt(mode)) {
             case 0: return USER_MODE.REQUESTER;
             case 1: return USER_MODE.TRANSLATOR;
             case 2: return USER_MODE.REVIEWER;

@@ -167,7 +167,7 @@ public class Session implements ISession{
                 output.put(key, val);
             }
 
-            System.out.println("return2 : " + output.toString());
+            Log.d(TAG, "return2 : " + output.toString());
             return ISession.RetVal.RET_OK;
 
         } catch (UnsupportedEncodingException e) {
