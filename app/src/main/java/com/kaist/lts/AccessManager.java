@@ -16,7 +16,10 @@ public class AccessManager {
         am = this;
         //Start ClientActivity class.
         GetSession();
-        startClientActivity(context);
+
+        if (!Login.reg_id) {
+            startClientActivity(context);
+        }
     }
 
     static public AccessManager getAccessManager() {

@@ -13,6 +13,7 @@ import org.json.simple.JSONObject;
 
 public class Registration extends AppCompatActivity {
 
+    static final String TAG = "[LTS][Registration]";
     private EditText idEt;
     private EditText passwordEt;
     private EditText repasswordEt;
@@ -26,7 +27,6 @@ public class Registration extends AppCompatActivity {
     private EditText addressEt;
     private Button registrationButton;
     private MessageHandler mainHandler = null;
-    static final String TAG = "[LTS][Registration]";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +47,24 @@ public class Registration extends AppCompatActivity {
         registrationButton = (Button) findViewById(R.id.btn_registeration);
 
         mainHandler = new MessageHandler();
+
+        if (!Login.reg_id) {
+            Log.d(TAG, "Skip to fill out ID and PW");
+            findViewById(R.id.id).setVisibility(View.GONE);
+            findViewById(R.id.pw).setVisibility(View.GONE);
+            findViewById(R.id.repw).setVisibility(View.GONE);
+            idEt.setVisibility(View.GONE);
+            passwordEt.setVisibility(View.GONE);
+            repasswordEt.setVisibility(View.GONE);
+
+            if (Login.sur_name != null && !Login.sur_name.isEmpty()) {
+                surnameEt.setText(Login.sur_name);
+            }
+
+            if (Login.given_name != null && !Login.given_name.isEmpty()) {
+                nameEt.setText(Login.given_name);
+            }
+        }
 
         registrationButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,27 +107,6 @@ public class Registration extends AppCompatActivity {
         });
     }
 
-    class MessageHandler extends Handler {
-        final static int RESULT_REGISTRATION = 0;
-        final static int SUCCESS = 1;
-        final static int FAILED = 0;
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case RESULT_REGISTRATION:
-                    if (msg.arg1 == SUCCESS) {
-                        // TODO: goto main view and wait for login by user?
-                    } else {
-                        // TODO: Show error popup (ask user to adjust input again)
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
     private JSONObject generateJson(String id, String password, String name, String surname,
                                     String phone, String email, String country, String address) {
         JSONObject profiles = new JSONObject();
@@ -130,5 +127,27 @@ public class Registration extends AppCompatActivity {
 
         Log.d(TAG, "register result : " + ret);
         return (ret == ISession.RetVal.RET_OK);
+    }
+
+    class MessageHandler extends Handler {
+        final static int RESULT_REGISTRATION = 0;
+        final static int SUCCESS = 1;
+        final static int FAILED = 0;
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case RESULT_REGISTRATION:
+                    if (msg.arg1 == SUCCESS) {
+                        // TODO: goto main view and wait for login by user?
+                    } else {
+                        // TODO: Show error popup (ask user to adjust input again)
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }

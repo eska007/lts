@@ -7,6 +7,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 import android.util.Log;
@@ -75,8 +77,7 @@ public class MainActivity extends AppCompatActivity {
         Registbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mContext.startActivity(new Intent(mContext, SelectRegistration.class));
-                finish();
+                startActivity(new Intent(mContext, SelectRegistration.class));
             }
         });
 
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), Login.class));
+                startActivity(new Intent(mContext, Login.class));
             }
         });
 
@@ -150,8 +151,12 @@ public class MainActivity extends AppCompatActivity {
         profileTracker.startTracking();
 
         if (profile != null) {
-            Log.d(TAG, "Facebook login ID: " + profile.getId());
-            Log.d(TAG, "Facebook Name: " + profile.getLastName() + profile.getFirstName());
+            Login.id = profile.getId();
+            Login.given_name = profile.getLastName();
+            Login.sur_name = profile.getFirstName();
+            Login.tryTocheckID(Login.id, new MessageHandler());
+
+            Log.d(TAG, "Facebook ID: " + Login.id + ", Name: " + Login.given_name + Login.sur_name);
         }
     }
 
@@ -224,7 +229,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "Success!");
-
                 createFacebookTracker();
                 createAccessManager();
                 finish();
@@ -249,8 +253,36 @@ public class MainActivity extends AppCompatActivity {
     private void createAccessManager() {
         if (am == null) {
             am = new AccessManager(mContext);
+            return;
+        }
+
+        if (Login.reg_id) {
+            finish();
         } else {
             am.startClientActivity(mContext);
+        }
+    }
+
+    class MessageHandler extends Handler {
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case Login.RESULT_CHECK_ID:
+                    if (msg.arg1 == Login.SUCCESS) {
+                        Log.d(TAG, "checkID Success");
+                        Login.reg_id = true;
+                        startActivity(new Intent(mContext, ClientActivity.class));
+                    } else {
+                        Log.d(TAG, "checkID Failed");
+                        startActivity(new Intent(mContext, SelectRegistration.class));
+                    }
+                    finish();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

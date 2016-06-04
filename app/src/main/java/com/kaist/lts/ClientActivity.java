@@ -185,7 +185,7 @@ public class ClientActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
 
-        final int mode =ProfileManager.getUserMode(Session.GetInstance());
+        final int mode = ProfileManager.getUserMode(Session.GetInstance());
         if (mode == ProfileManager.USER_MODE.TRANSLATOR
                 || mode == ProfileManager.USER_MODE.REVIEWER) {
             new Notifier(Notifier.Command.NEW_TRANSLATION_REQUEST, this.getApplicationContext());
