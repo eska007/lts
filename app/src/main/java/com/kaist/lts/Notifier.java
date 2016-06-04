@@ -23,14 +23,10 @@ public class Notifier {
     Context mContext;
 
     public enum Command{
-        NEW_TRANSLATION_REQUEST("GET_NEW_TRANSLATION_REQUEST"), // by Translator and Requester, Invoke whenever
-        LIST_OF_TRANSLATOR_CANDIDATES("GET_LIST_OF_TRANSLATOR_CANDIDATES"), // by Requester,  Invoke after adding new request
-        RESULT_OF_TRANSLATOR_BID("GET_RESULT_OF_TRANSLATOR_BID"),   // by Translator, Invoke after bid
-        RESULT_OF_REVIEWER_BID("GET_RESULT_OF_REVIEWER_BID"),   // by Reviewer, Invoke after bid
-        REVIEW_REQUEST("GET_REVIEW_REQUEST"),   // by Reviewer, Invoke after employed
-        RESULT_OF_REVIEW("GET_RESULT_OF_REVIEW"),   // by Translator, Invoke after ReviewRequest
-        RESULT_OF_TRANSLATION("GET_RESULT_OF_TRANSLATION"), // by Requester, Invoke after selection of translator.
-        FINAL_RESULT("GET_FINAL_RESULT"); // by Translator, Reviewer, Invoke after work done.
+        NEW_REQUEST("GET_NEW_REQUEST"), // by Translator / Reviewer, Invoke whenever,  RETURN: Integer / RequestID
+        LIST_OF_CANDIDATES("GET_LIST_OF_CANDIDATES"), // by Requester / Translator,  Invoke after adding new request, RETURN: String / Series of Member IDs ";ID1;ID2;ID3;..."
+        RESULT_OF_BID("GET_RESULT_OF_BID"),   // by Translator or Reviewer, Invoke after bid,   RETURN: String / Selected Member ID
+        RESULT_OF_REVIEW("GET_RESULT_OF_WORK");   // by Translator or Requester, Invoke after ReviewRequest,  RETURN: ISession.RetVal
         private String cmd;
         Command(String str) {
             cmd = str;

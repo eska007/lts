@@ -88,10 +88,11 @@ public class Session implements ISession{
         Log.d(TAG, "ConvertResult : " + arg);
         switch(arg) {
             case "0":	return ISession.RetVal.RET_OK;
-            case "2":	return ISession.RetVal.RET_NETWORK_ERROR;
-            case "3":	return ISession.RetVal.RET_DATABASE_ERROR;
-            case "4":	return ISession.RetVal.RET_DATABASE_DUPLICATED_ERROR;
-            case "5":	return ISession.RetVal.RET_PARAM_ERROR;
+            case "-1":	return ISession.RetVal.RET_FAIL;
+            case "-2":	return ISession.RetVal.RET_NETWORK_ERROR;
+            case "-3":	return ISession.RetVal.RET_DATABASE_ERROR;
+            case "-4":	return ISession.RetVal.RET_DATABASE_DUPLICATED_ERROR;
+            case "-5":	return ISession.RetVal.RET_PARAM_ERROR;
             default:
                 break;
         }

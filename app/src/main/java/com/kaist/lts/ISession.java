@@ -23,25 +23,3 @@ public interface ISession {
         RET_PARAM_ERROR
     }
 }
-
-interface SubscribeCb {
-    void onNotiication();
-}
-
-interface IRequesterSession extends ISession {
-    boolean Request(JSONObject obj);
-
-    boolean Subscribe(SubscribeCb callback);
-}
-
-interface ITranslatorSession extends ISession {
-    boolean Request(JSONObject obj);
-
-    boolean Subscribe(SubscribeCb callback);
-}
-
-interface IReviewerSession extends ISession {
-    boolean Request(JSONObject obj);
-
-    boolean Subscribe(SubscribeCb callback);
-}
