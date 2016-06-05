@@ -35,14 +35,13 @@ import java.security.MessageDigest;
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "[LTS][MainActivity]";
     static final String PACKAGE_NAME = "com.kaist.lts";
+    static protected SharedPreferences mPrefs;
     static private AccessManager am;
     static private AccessTokenTracker accessTokenTracker;
     static private AccessToken accessToken;
     static private ProfileTracker profileTracker;
     static private Profile profile;
-
     private Context mContext;
-    private SharedPreferences mPrefs;
     private CallbackManager callbackManager;
     private LoginButton facebookLoginButton;
 
@@ -256,11 +255,13 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (Login.reg_id) {
-            finish();
+        if (MainActivity.mPrefs.getBoolean("registration", false) == false) {
+            Log.d(TAG, "Start Sel Registration");
+            AccessManager.startOtherActivity(mContext, "com.kaist.lts.SelectRegistration");
         } else {
-            am.startClientActivity(mContext);
+            AccessManager.startOtherActivity(mContext, "com.kaist.lts.ClientActivity");
         }
+
     }
 
     class MessageHandler extends Handler {

@@ -1,5 +1,7 @@
 package com.kaist.lts;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -8,12 +10,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.json.simple.JSONObject;
 
 public class Registration extends AppCompatActivity {
 
     static final String TAG = "[LTS][Registration]";
+    Context mConext;
     private EditText idEt;
     private EditText passwordEt;
     private EditText repasswordEt;
@@ -30,6 +34,7 @@ public class Registration extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mConext = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
 
@@ -79,11 +84,22 @@ public class Registration extends AppCompatActivity {
                 final String country = countryEt.getText().toString();
                 final String address = addressEt.getText().toString();
 
-                if (id.isEmpty() || password.isEmpty() || name.isEmpty() || surname.isEmpty()
-                        || phone.isEmpty() || email.isEmpty() || country.isEmpty() || address.isEmpty()) {
-                    // TODO: Show error popup!
-                    Log.e(TAG, "some missing profiles");
-                    return;
+
+                if (!Login.id.isEmpty()) {
+                    if (name.isEmpty() || surname.isEmpty()
+                            || phone.isEmpty() || email.isEmpty() || country.isEmpty() || address.isEmpty()) {
+                        Toast.makeText(mConext, "Please fill out all items", Toast.LENGTH_SHORT);
+                        Log.e(TAG, "some missing profiles");
+                        return;
+                    }
+                } else {
+                    if (id.isEmpty() || password.isEmpty() || name.isEmpty() || surname.isEmpty()
+                            || phone.isEmpty() || email.isEmpty() || country.isEmpty() || address.isEmpty()) {
+                        // TODO: Show error popup!
+                        Log.e(TAG, "some missing profiles");
+                        Toast.makeText(mConext, "Please fill out all items", Toast.LENGTH_SHORT);
+                        return;
+                    }
                 }
 
                 // Request Registration
@@ -91,8 +107,14 @@ public class Registration extends AppCompatActivity {
                     /* UI Main thread doesn't allow any direct network connection */
                     @Override
                     public void run() {
-                        boolean ret = register(Session.GetInstance(),
-                                generateJson(id, password, name, surname, phone, email, country, address));
+                        JSONObject json;
+                        if (!Login.id.isEmpty()) {
+                            json = generateJson(Login.id, null, Login.given_name, Login.sur_name, phone, email, country, address);
+                        } else {
+                            json = generateJson(id, password, name, surname, phone, email, country, address);
+                        }
+                        Log.e(TAG, "Send regist info to server");
+                        boolean ret = register(Session.GetInstance(), json);
                         /* boolean ret = register(Session.GetInstance(),
                             generateJson("test_id", "1234", "name","surname","01000011", "ys@naver.com", "korea", "suwon"));*/
                         Message msg = mainHandler.obtainMessage();
@@ -141,8 +163,20 @@ public class Registration extends AppCompatActivity {
                 case RESULT_REGISTRATION:
                     if (msg.arg1 == SUCCESS) {
                         // TODO: goto main view and wait for login by user?
+                        Log.d(TAG, "registration success");
+                        Login.reg_id = true;
+                        SharedPreferences.Editor prefEditor = MainActivity.mPrefs.edit();
+                        prefEditor.putBoolean("registration", true);
+                        prefEditor.apply();
+                        AccessManager.startOtherActivity(mConext, "com.kaist.lts.ClientActivity");
+                        finish();
                     } else {
                         // TODO: Show error popup (ask user to adjust input again)
+                        Log.d(TAG, "registration failed");
+                        Login.reg_id = false;
+                        SharedPreferences.Editor prefEditor = MainActivity.mPrefs.edit();
+                        prefEditor.putBoolean("registration", false);
+                        prefEditor.apply();
                     }
                     break;
                 default:

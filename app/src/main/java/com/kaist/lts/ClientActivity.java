@@ -1,10 +1,13 @@
 package com.kaist.lts;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,7 +17,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.util.Pair;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -26,12 +28,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ExpandableListAdapter;
+import android.widget.DatePicker;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.SimpleExpandableListAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
@@ -40,21 +45,25 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 public class ClientActivity extends AppCompatActivity {
-    private static final String TAG = "[LTS][ClientActivity]";
-    private static final int PICK_FILE_REQUEST = 1;
-    public static int TIME_OUT = 0;
+    static final String TAG = "[LTS][ClientActivity]";
+    static final int PAGE_NUM_NOTIFY = 1;
+    static final int PAGE_NUM_REQUEST = 2;
+    static final int PAGE_NUM_PROFILE = 3;
+    static final int PICK_FILE_REQUEST = 1;
+    static public int TIME_OUT = 0;
     static Context mContext;
     static FileHandler fh;
     static String selectedFilePath;
-    private static PowerManager.WakeLock wakeLock;
-    private static Handler mHandler;
-    private static ProgressDialog dialog;
+    static private PowerManager.WakeLock wakeLock;
+    static private Handler mHandler;
+    static private ProgressDialog dialog;
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
      * The {@link PagerAdapter} that will provide
@@ -86,6 +95,141 @@ public class ClientActivity extends AppCompatActivity {
         activity.startActivityForResult(Intent.createChooser(intent, "Choose File to Upload.."), PICK_FILE_REQUEST);
     }
 
+    private static void createUploadItems(View view, final Activity ac) {
+        Log.d(TAG, "Show Upload items");
+        ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
+        if (attachIcon != null) {
+            attachIcon.setVisibility(View.VISIBLE);
+            attachIcon.setOnClickListener(new Button.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    fh = new FileHandler();
+                    showFileChooser(ac);
+
+                }
+            });
+        }
+
+        Button uploadButton = (Button) view.findViewById(R.id.upload_button);
+        if (uploadButton != null) {
+            uploadButton.setVisibility(View.VISIBLE);
+            uploadButton.setOnClickListener(new Button.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (fh != null) {
+                        Log.d(TAG, "Display progress bar");
+                        dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
+                        FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
+                        mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
+                    }
+                }
+            });
+        }
+    }
+
+    private static void createSpinners(View view) {
+        displayRequestItems(view);
+
+        Spinner type = (Spinner) view.findViewById(R.id.spinner_type);
+        type.setVisibility(View.VISIBLE);
+        ArrayAdapter adapter1 = ArrayAdapter.createFromResource(mContext, R.array.type, android.R.layout.simple_spinner_item);
+        adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        type.setAdapter(adapter1);
+        //type.setOnItemClickListener(mClickListener);
+
+        //Select type of level
+        Spinner level = (Spinner) view.findViewById(R.id.spinner_level);
+        level.setVisibility(View.VISIBLE);
+        ArrayAdapter adapter2 = ArrayAdapter.createFromResource(mContext, R.array.level, android.R.layout.simple_spinner_item);
+        adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        level.setAdapter(adapter2);
+
+        Spinner payment = (Spinner) view.findViewById(R.id.spinner_pay);
+        payment.setVisibility(View.VISIBLE);
+        ArrayAdapter adapter3 = ArrayAdapter.createFromResource(mContext, R.array.pay, android.R.layout.simple_spinner_item);
+        adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        payment.setAdapter(adapter3);
+    }
+
+    private static void displayRequestItems(View view) {
+        TextView newText = (TextView) view.findViewById(R.id.new_request);
+        TextView typeText = (TextView) view.findViewById(R.id.type);
+        TextView levelText = (TextView) view.findViewById(R.id.level);
+        TextView payText = (TextView) view.findViewById(R.id.pay);
+        Button dateBt = (Button) view.findViewById(R.id.end_date);
+
+        newText.setVisibility(View.VISIBLE);
+        typeText.setVisibility(View.VISIBLE);
+        levelText.setVisibility(View.VISIBLE);
+        payText.setVisibility(View.VISIBLE);
+        dateBt.setVisibility(View.VISIBLE);
+    }
+
+    static public void showRequestList(Activity activity, View view) {
+        final Activity ac = activity;
+        Log.d(TAG, "Show Request List");
+
+        // Show title
+        TextView title1 = (TextView) view.findViewById(R.id.frag_exp_list_view_title1);
+        TextView title2 = (TextView) view.findViewById(R.id.frag_exp_list_view_title2);
+        title1.setVisibility(View.VISIBLE);
+        title2.setVisibility(View.VISIBLE);
+
+        // Prepare request item listview
+        ExpandableListView mExpListView = (ExpandableListView) view.findViewById(R.id.request_list_view);
+        ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
+        ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
+
+        // Get my new request list
+        JSONObject myprofile = ProfileManager.getMyInfo(Session.GetInstance());
+        String new_request_list = (String) myprofile.get("new_request");
+        Log.d(TAG, new_request_list);
+
+        // Get each request information
+        StringTokenizer st = new StringTokenizer(new_request_list, ";"); // Parse new request list (ex. new_request_list = ";13;52;1;32")
+        while (st.hasMoreTokens()) {
+            String id_str = st.nextToken();
+            int id = Integer.parseInt(id_str);
+            Log.d(TAG, "id: " + id_str);
+
+            JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
+
+            Map<String, String> curr = new HashMap<String, String>();
+            curr.put("ID", id_str);
+            curr.put("SUBJECT", (String) request.get("subject"));
+            mGroupList.add(curr);
+
+            ArrayList<Map<String, String>> children = new ArrayList<Map<String, String>>();
+            Iterator<Object> itr = request.keySet().iterator();
+            while (itr.hasNext()) {
+                Object key = itr.next();
+                String val = (String) request.get(key);
+                if (val.equals("id") || val.equals("subject"))
+                    continue;
+                Map<String, String> child = new HashMap<String, String>();
+                child.put("ITEM", (String) key);
+                child.put("DATA", val);
+                children.add(child);
+            }
+            mChildList.add(children);
+        }
+
+        mExpListView.setAdapter(new SimpleExpandableListAdapter(
+                ac.getApplicationContext(),
+                mGroupList,
+                R.layout.request_list_row,
+                new String[]{"ID", "SUBJECT"},
+                new int[]{R.id.req_list_item_id, R.id.req_list_item_desc},
+                mChildList,
+                R.layout.detail_request_list_row,
+                new String[]{"ITEM", "DATA"},
+                new int[]{R.id.detail_req_list_item, R.id.detail_req_list_data}
+        ));
+
+        mExpListView.setVisibility(View.VISIBLE);
+    }
+
+    @TargetApi(Build.VERSION_CODES.DONUT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
@@ -140,7 +284,7 @@ public class ClientActivity extends AppCompatActivity {
         Log.d(TAG, "onKeyUp");
 
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            moveTaskToBack(false);
+            moveTaskToBack(true);
             finish();
             android.os.Process.killProcess(android.os.Process.myPid());
         }
@@ -251,7 +395,6 @@ public class ClientActivity extends AppCompatActivity {
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
 
-
         public PlaceholderFragment() {
         }
 
@@ -271,104 +414,43 @@ public class ClientActivity extends AppCompatActivity {
          * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
          * one of the sections/tabs/pages.
          */
-        static public void showUpload(Activity activity, View view, int pageNum) {
+        static public void showRequestItems(Activity activity, View view) {
             final Activity ac = activity;
-            if (pageNum == 2) {
 
-                Log.d(TAG, "Show Upload items");
-                ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
-                if (attachIcon != null) {
-                    attachIcon.setVisibility(View.VISIBLE);
-                    attachIcon.setOnClickListener(new Button.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            fh = new FileHandler();
-                            showFileChooser(ac);
+            createSpinners(view);
+            createDateSelector(view);
+            createUploadItems(view, ac);
+            //Listview
+/*                ArrayAdapter<String> adapter2 = new ArrayAdapter<String> (mContext, android.R.layout.simple_list_item_1, paymentList);
+                Spinner pay = (Spinner) view.findViewById(R.id.spinner_pay);
+                pay.setAdapter(adapter2);
+                pay.setOnItemClickListener(mClickListener);*/
 
-                        }
-                    });
-                }
-
-                Button uploadButton = (Button) view.findViewById(R.id.upload_button);
-                if (uploadButton != null) {
-                    uploadButton.setVisibility(View.VISIBLE);
-                    uploadButton.setOnClickListener(new Button.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (fh != null) {
-                                Log.d(TAG, "Display progress bar");
-                                dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
-                                FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
-                                mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
-                            }
-                        }
-                    });
-                }
-            }
         }
 
-        static public void showRequestList(Activity activity, View view) {
-            final Activity ac = activity;
-            Log.d(TAG, "Show Request List");
+        private static void createDateSelector(View view) {
+            Button endDate = (Button) view.findViewById(R.id.end_date);
+            endDate.setVisibility(View.VISIBLE);
+            if (endDate != null) {
+                endDate.setVisibility(View.VISIBLE);
+                endDate.setOnClickListener(new Button.OnClickListener() {
+                    private DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
+                        @Override
+                        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                            Toast.makeText(mContext, year + "년" + monthOfYear + "월" + dayOfMonth + "일", Toast.LENGTH_SHORT).show();
+                        }
+                    };
 
-            // Show title
-            TextView title1 = (TextView)view.findViewById(R.id.frag_exp_list_view_title1);
-            TextView title2 = (TextView)view.findViewById(R.id.frag_exp_list_view_title2);
-            title1.setVisibility(View.VISIBLE);
-            title2.setVisibility(View.VISIBLE);
+                    @Override
+                    public void onClick(View view) {
+                        Calendar calendar = Calendar.getInstance();
 
-            // Prepare request item listview
-            ExpandableListView mExpListView = (ExpandableListView)view.findViewById(R.id.request_list_view);
-            ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
-            ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String,String>>>();
-
-            // Get my new request list
-            JSONObject myprofile = ProfileManager.getMyInfo(Session.GetInstance());
-            String new_request_list = (String)myprofile.get("new_request");
-            Log.d(TAG, new_request_list);
-
-            // Get each request information
-            StringTokenizer st = new StringTokenizer(new_request_list, ";"); // Parse new request list (ex. new_request_list = ";13;52;1;32")
-            while(st.hasMoreTokens()) {
-                String id_str = st.nextToken();
-                int id = Integer.parseInt(id_str);
-                Log.d(TAG, "id: "+id_str);
-
-                JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
-
-                Map<String, String> curr = new HashMap<String, String>();
-                curr.put("ID", id_str);
-                curr.put("SUBJECT", (String)request.get("subject"));
-                mGroupList.add(curr);
-
-                ArrayList<Map<String,String>> children = new ArrayList<Map<String, String>>();
-                Iterator<Object> itr = request.keySet().iterator();
-                while(itr.hasNext()) {
-                    Object key = itr.next();
-                    String val = (String)request.get(key);
-                    if (val.equals("id") || val.equals("subject"))
-                        continue;
-                    Map<String, String> child = new HashMap<String, String>();
-                    child.put("ITEM", (String)key);
-                    child.put("DATA", val);
-                    children.add(child);
-                }
-                mChildList.add(children);
+                        DatePickerDialog dialog = new DatePickerDialog
+                                (mContext, listener, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE));
+                        dialog.show();
+                    }
+                });
             }
-
-            mExpListView.setAdapter(new SimpleExpandableListAdapter(
-                    ac.getApplicationContext(),
-                    mGroupList,
-                    R.layout.request_list_row,
-                    new String[] {"ID", "SUBJECT"},
-                    new int[] {R.id.req_list_item_id, R.id.req_list_item_desc},
-                    mChildList,
-                    R.layout.detail_request_list_row,
-                    new String[] {"ITEM", "DATA"},
-                    new int[] {R.id.detail_req_list_item, R.id.detail_req_list_data}
-            ));
-
-            mExpListView.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -378,16 +460,16 @@ public class ClientActivity extends AppCompatActivity {
 
             View rootView = inflater.inflate(R.layout.fragment_client, container, false);
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
-            switch(pageViewNumber) {
-                case 1:
-                    showRequestList(getActivity(), rootView);
+            switch (pageViewNumber) {
+                case PAGE_NUM_NOTIFY:
+                    //showRequestList(getActivity(), rootView);
                     break;
-                case 2:
-                    showUpload(getActivity(), rootView, pageViewNumber);
+                case PAGE_NUM_REQUEST:
+                    showRequestItems(getActivity(), rootView);
                     break;
+                case PAGE_NUM_PROFILE:
                 default:
             }
-
 
 
             //TextView textView = (TextView) rootView.findViewById(R.id.section_label);

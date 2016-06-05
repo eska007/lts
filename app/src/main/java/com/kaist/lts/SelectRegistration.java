@@ -1,6 +1,7 @@
 package com.kaist.lts;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -52,6 +53,12 @@ public class SelectRegistration extends AppCompatActivity {
 
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             moveTaskToBack(true);
+            if (Login.reg_id == false) {
+                Log.d(TAG, "Stop to regist with facebook-ID");
+                SharedPreferences.Editor prefEditor = MainActivity.mPrefs.edit();
+                prefEditor.putBoolean("registration", false);
+                prefEditor.apply();
+            }
             finish();
         }
         return super.onKeyUp(keyCode, event);

@@ -17,8 +17,16 @@ public class AccessManager {
         //Start ClientActivity class.
         GetSession();
 
-        if (!Login.reg_id) {
-            startClientActivity(context);
+        if (MainActivity.mPrefs.getBoolean("registration", false) == false) {
+            Log.d(TAG, "Start Sel Registration");
+            startOtherActivity(context, "com.kaist.lts.SelectRegistration");
+        } else {
+            startOtherActivity(context, "com.kaist.lts.ClientActivity");
+        }
+
+        if (Login.reg_id) {
+            Log.d(TAG, "Start ClientActivity");
+            startOtherActivity(context, "com.kaist.lts.ClientActivity");
         }
     }
 
@@ -26,10 +34,10 @@ public class AccessManager {
         return am;
     }
 
-    public void startClientActivity(Context context) {
+    static public void startOtherActivity(Context context, String className) {
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName("com.kaist.lts", "com.kaist.lts.ClientActivity");
+        intent.setClassName("com.kaist.lts", className);
         context.startActivity(intent);
     }
 
