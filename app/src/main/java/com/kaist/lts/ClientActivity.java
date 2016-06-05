@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.util.Pair;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -26,11 +27,23 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ExpandableListAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.SimpleExpandableListAdapter;
+import android.widget.TextView;
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import org.json.simple.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 public class ClientActivity extends AppCompatActivity {
     private static final String TAG = "[LTS][ClientActivity]";
@@ -238,6 +251,7 @@ public class ClientActivity extends AppCompatActivity {
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
 
+
         public PlaceholderFragment() {
         }
 
@@ -293,6 +307,70 @@ public class ClientActivity extends AppCompatActivity {
             }
         }
 
+        static public void showRequestList(Activity activity, View view) {
+            final Activity ac = activity;
+            Log.d(TAG, "Show Request List");
+
+            // Show title
+            TextView title1 = (TextView)view.findViewById(R.id.frag_exp_list_view_title1);
+            TextView title2 = (TextView)view.findViewById(R.id.frag_exp_list_view_title2);
+            title1.setVisibility(View.VISIBLE);
+            title2.setVisibility(View.VISIBLE);
+
+            // Prepare request item listview
+            ExpandableListView mExpListView = (ExpandableListView)view.findViewById(R.id.request_list_view);
+            ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
+            ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String,String>>>();
+
+            // Get my new request list
+            JSONObject myprofile = ProfileManager.getMyInfo(Session.GetInstance());
+            String new_request_list = (String)myprofile.get("new_request");
+            Log.d(TAG, new_request_list);
+
+            // Get each request information
+            StringTokenizer st = new StringTokenizer(new_request_list, ";"); // Parse new request list (ex. new_request_list = ";13;52;1;32")
+            while(st.hasMoreTokens()) {
+                String id_str = st.nextToken();
+                int id = Integer.parseInt(id_str);
+                Log.d(TAG, "id: "+id_str);
+
+                JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
+
+                Map<String, String> curr = new HashMap<String, String>();
+                curr.put("ID", id_str);
+                curr.put("SUBJECT", (String)request.get("subject"));
+                mGroupList.add(curr);
+
+                ArrayList<Map<String,String>> children = new ArrayList<Map<String, String>>();
+                Iterator<Object> itr = request.keySet().iterator();
+                while(itr.hasNext()) {
+                    Object key = itr.next();
+                    String val = (String)request.get(key);
+                    if (val.equals("id") || val.equals("subject"))
+                        continue;
+                    Map<String, String> child = new HashMap<String, String>();
+                    child.put("ITEM", (String)key);
+                    child.put("DATA", val);
+                    children.add(child);
+                }
+                mChildList.add(children);
+            }
+
+            mExpListView.setAdapter(new SimpleExpandableListAdapter(
+                    ac.getApplicationContext(),
+                    mGroupList,
+                    R.layout.request_list_row,
+                    new String[] {"ID", "SUBJECT"},
+                    new int[] {R.id.req_list_item_id, R.id.req_list_item_desc},
+                    mChildList,
+                    R.layout.detail_request_list_row,
+                    new String[] {"ITEM", "DATA"},
+                    new int[] {R.id.detail_req_list_item, R.id.detail_req_list_data}
+            ));
+
+            mExpListView.setVisibility(View.VISIBLE);
+        }
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
@@ -300,7 +378,18 @@ public class ClientActivity extends AppCompatActivity {
 
             View rootView = inflater.inflate(R.layout.fragment_client, container, false);
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
-            showUpload(getActivity(), rootView, pageViewNumber);
+            switch(pageViewNumber) {
+                case 1:
+                    showRequestList(getActivity(), rootView);
+                    break;
+                case 2:
+                    showUpload(getActivity(), rootView, pageViewNumber);
+                    break;
+                default:
+            }
+
+
+
             //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 

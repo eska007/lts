@@ -36,4 +36,33 @@ public class ProfileManager {
         }
         return -1;
     }
+
+    public static JSONObject getMemberInfo(ISession cs, String member_id) {
+        JSONObject input = new JSONObject();
+        input.put("command", "GET_MEMBER_INFO");
+        input.put("id", member_id);
+
+        JSONObject output = new JSONObject();
+        ISession.RetVal ret = cs.SendRequest(input, output);
+        if (ret != ISession.RetVal.RET_OK) {
+            return null;
+        }
+
+        Log.d(TAG, "GET_MEMBER_INFO result : " + ret + ", output : " + output.toString());
+        return output;
+    }
+
+    public static JSONObject getMyInfo(ISession cs) {
+        JSONObject input = new JSONObject();
+        input.put("command", "GET_MEMBER_INFO");
+
+        JSONObject output = new JSONObject();
+        ISession.RetVal ret = cs.SendRequest(input, output);
+        if (ret != ISession.RetVal.RET_OK) {
+            return null;
+        }
+
+        Log.d(TAG, "GET_MEMBER_INFO result : " + ret + ", output : " + output.toString());
+        return output;
+    }
 }

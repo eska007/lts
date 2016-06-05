@@ -179,7 +179,6 @@ public class Session implements ISession{
             e.printStackTrace();
         } catch (ClassCastException e) {
             // If it's not in logged-in state, received_data may not be json format.
-            e.printStackTrace();
             return ConvertResult(received_data);
         }
         return ISession.RetVal.RET_FAIL;
