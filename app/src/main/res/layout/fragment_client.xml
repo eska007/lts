@@ -207,7 +207,8 @@
         android:layout_alignParentStart="true"
         android:layout_below="@id/frag_exp_list_view_title1"
         android:groupIndicator="@null"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:paddingBottom="100dp">
     </ExpandableListView>
 
 

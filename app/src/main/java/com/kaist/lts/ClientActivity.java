@@ -205,8 +205,78 @@ public class ClientActivity extends AppCompatActivity {
         payText.setVisibility(View.VISIBLE);
         dateBt.setVisibility(View.VISIBLE);
     }
+    static private void showRequestListForRequester(Activity activity, View view) {
+        final Activity ac = activity;
+        Log.d(TAG, "Show Request List");
 
-    static public void showRequestList(Activity activity, View view) {
+        // Show title
+        TextView title1 = (TextView) view.findViewById(R.id.frag_exp_list_view_title1);
+        TextView title2 = (TextView) view.findViewById(R.id.frag_exp_list_view_title2);
+        title1.setVisibility(View.VISIBLE);
+        title2.setVisibility(View.VISIBLE);
+
+        // Get my profiles
+        JSONObject myprofile = null;
+        myprofile = ProfileManager.getMyInfo(Session.GetInstance());
+        if (myprofile == null) {
+            Log.e(TAG, "No response from ProfileManager.getMyInfo");
+            return;
+        }
+
+        // Get my all requests list (Include work-done, working, and not-applied requests)
+        String all_worklist = (String)myprofile.get("worklist");
+        Log.d(TAG, "all_worklist: " + all_worklist);
+
+        // Get each request information and  Fill the Group/Child data of Expandable ListView
+        ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
+        ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
+        StringTokenizer st = new StringTokenizer(all_worklist, ";"); // Parse new request list (ex. all_worklist = ";13;52;1;32")
+
+        while (st.hasMoreTokens()) {
+            String id_str = st.nextToken();
+            int id = Integer.parseInt(id_str);
+            Log.d(TAG, "id: " + id_str);
+
+            JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
+
+            Map<String, String> curr = new HashMap<String, String>();
+            curr.put("ID", id_str);
+            curr.put("SUBJECT", (String) request.get("subject"));
+            mGroupList.add(curr);
+
+            ArrayList<Map<String, String>> children = new ArrayList<Map<String, String>>();
+            Iterator<Object> itr = request.keySet().iterator();
+            while (itr.hasNext()) {
+                Object key = itr.next();
+                String val = (String) request.get(key);
+                if (val.equals("id") || val.equals("subject"))
+                    continue;
+                Map<String, String> child = new HashMap<String, String>();
+                child.put("ITEM", (String) key);
+                child.put("DATA", val);
+                children.add(child);
+            }
+            mChildList.add(children);
+        }
+
+        final ExpandableListView mExpListView = (ExpandableListView) view.findViewById(R.id.request_list_view);
+        mExpListView.setAdapter(new SimpleExpandableListAdapter(
+                        ac.getApplicationContext(),
+                        mGroupList,
+                        R.layout.request_list_row,
+                        new String[]{"ID", "SUBJECT"},
+                        new int[]{R.id.req_list_item_id, R.id.req_list_item_desc},
+                        mChildList,
+                        R.layout.detail_request_list_row,
+                        new String[]{"ITEM", "DATA"},
+                        new int[]{R.id.detail_req_list_item, R.id.detail_req_list_data}
+                )
+        );
+        Log.d(TAG, "SetAdaptor");
+        mExpListView.setVisibility(View.VISIBLE);
+    }
+
+    static private void showRequestListForWorker(Activity activity, View view) {
         final Activity ac = activity;
         Log.d(TAG, "Show Request List");
 
@@ -271,7 +341,7 @@ public class ClientActivity extends AppCompatActivity {
         }
 
         final ExpandableListView mExpListView = (ExpandableListView) view.findViewById(R.id.request_list_view);
-        mExpListView.setAdapter(new customExpandableList(
+        mExpListView.setAdapter(new expandableListAdapterForWorker(
                 ac.getApplicationContext(),
                 mGroupList,
                 R.layout.request_list_row,
@@ -478,10 +548,10 @@ public class ClientActivity extends AppCompatActivity {
         client.disconnect();
     }
 
-    public static class customExpandableList extends SimpleExpandableListAdapter {
+    public static class expandableListAdapterForWorker extends SimpleExpandableListAdapter {
         final private ExpandableListView mExpListView;
 
-        public customExpandableList(Context context,
+        public expandableListAdapterForWorker(Context context,
                                     List<? extends Map<String, ?>> groupData, int groupLayout,
                                     String[] groupFrom, int[] groupTo,
                                     List<? extends List<? extends Map<String, ?>>> childData,
@@ -619,9 +689,13 @@ public class ClientActivity extends AppCompatActivity {
 
             View rootView = inflater.inflate(R.layout.fragment_client, container, false);
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
+            int user_mode = ProfileManager.getUserMode(Session.GetInstance());
             switch (pageViewNumber) {
                 case PAGE_NUM_NOTIFY:
-                    showRequestList(getActivity(), rootView);
+                    if (user_mode == ProfileManager.USER_MODE.REQUESTER)
+                        showRequestListForRequester(getActivity(), rootView);
+                    else
+                        showRequestListForWorker(getActivity(), rootView);
                     break;
                 case PAGE_NUM_REQUEST:
                     showRequestItems(getActivity(), rootView);
