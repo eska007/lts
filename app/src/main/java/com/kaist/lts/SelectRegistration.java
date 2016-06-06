@@ -62,13 +62,13 @@ public class SelectRegistration extends AppCompatActivity implements View.OnClic
         Log.d(TAG, "onKeyUp");
 
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            moveTaskToBack(true);
             if (!Login.reg_id) {
                 Log.d(TAG, "Stop to regist with facebook-ID");
                 SharedPreferences.Editor prefEditor = MainActivity.mPrefs.edit();
                 prefEditor.putBoolean("registration", false);
                 prefEditor.apply();
             }
+            moveTaskToBack(true);
             finish();
         }
         return super.onKeyUp(keyCode, event);

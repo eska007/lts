@@ -9,6 +9,7 @@ import android.util.Log;
  */
 public class AccessManager {
     static final String LTS_PACKAGE_NAME = "com.kaist.lts";
+    static final String MAIN_CLASS_NAME = "com.kaist.lts.MainActivity";
     static final String INTRO_CLASS_NAME = "com.kaist.lts.Intro";
     static final String CLIENT_CLASS_NAME = "com.kaist.lts.ClientActivity";
     static final String REGIST_CLASS_NAME = "com.kaist.lts.Registration";

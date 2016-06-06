@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -19,6 +20,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -231,6 +233,7 @@ public class ClientActivity extends AppCompatActivity {
         ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
         ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
         StringTokenizer st = new StringTokenizer(all_requests_list, ";"); // Parse new request list (ex. all_requests_list = ";13;52;1;32")
+
         while (st.hasMoreTokens()) {
             String id_str = st.nextToken();
             int id = Integer.parseInt(id_str);
@@ -279,70 +282,6 @@ public class ClientActivity extends AppCompatActivity {
         Log.d(TAG, "SetAdaptor");
         mExpListView.setVisibility(View.VISIBLE);
     }
-
-    public static class customExpandableList extends SimpleExpandableListAdapter {
-        final private ExpandableListView mExpListView;
-        public customExpandableList(Context context,
-                                          List<? extends Map<String, ?>> groupData, int groupLayout,
-                                          String[] groupFrom, int[] groupTo,
-                                          List<? extends List<? extends Map<String, ?>>> childData,
-                                          int childLayout, String[] childFrom, int[] childTo, ExpandableListView expListView) {
-            super(context, groupData, groupLayout, groupLayout, groupFrom, groupTo, childData,
-                    childLayout, childLayout, childFrom, childTo);
-            mExpListView = expListView;
-        }
-
-        @Override
-        public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
-                                 ViewGroup parent) {
-            View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
-
-            // Show Apply Button If it's new requests (Not applied yet)
-            Map<String,String> groupdata = (Map<String,String>)super.getGroup(groupPosition);
-            final Button apply_btn = (Button)view.findViewById(R.id.request_apply_btn);
-            if (groupdata.get("IS_APPLIED").equals((String)"TRUE")) {
-                Log.d(TAG, "IS_APPLIED = TRUE");
-                disableButton(apply_btn);
-            }else {
-                enableButton(apply_btn);
-                apply_btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Log.d(TAG, "btn onClick");
-                        int request_id = Integer.parseInt((String)view.getTag(R.id.request_apply_btn));
-                        if (!RequestManager.bid(Session.GetInstance(), request_id))
-                            Log.d(TAG, "Failed to BID, req_id:" + Integer.toString(request_id));
-                        //mExpListView.invalidateViews();
-                        disableButton(apply_btn);
-                        ExpandableListAdapter ad = mExpListView.getExpandableListAdapter();
-                        Map<String,String> groupdata = (Map<String,String>)ad.getGroup((int)view.getTag(R.id.request_apply_btn+1));
-                        groupdata.put("IS_APPLIED", "TRUE");
-                    }
-                });
-            }
-                    /*Log.d(TAG, "getGroupView  pos"+Integer.toString(groupPosition)+
-                            ", APPLIED:"+groupdata.get("IS_APPLIED")+", ID:"+groupdata.get("ID"));*/
-            apply_btn.setVisibility(View.VISIBLE);
-            apply_btn.setTag(R.id.request_apply_btn, groupdata.get("ID"));
-            apply_btn.setTag(R.id.request_apply_btn+1, groupPosition);
-            return view;
-        }
-
-        private void disableButton(final Button apply_btn) {
-            apply_btn.setText("Applied");
-            apply_btn.setOnClickListener(null);
-            apply_btn.setClickable(false);
-            apply_btn.setBackgroundColor(0xFF9AF0E5);
-        }
-
-        private void enableButton(final Button apply_btn) {
-            apply_btn.setText("Apply");
-            apply_btn.setBackgroundColor(0xFF54C7B8);
-            apply_btn.setClickable(true);
-
-        }
-    }
-
 
     @TargetApi(Build.VERSION_CODES.DONUT)
     @Override
@@ -396,14 +335,48 @@ public class ClientActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        Log.d(TAG, "onKeyUp");
 
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            moveTaskToBack(true);
-            finish();
-//       `     android.os.Process.killProcess(android.os.Process.myPid());
+            Log.d(TAG, "onKeyUp");
+
+            AlertDialog.Builder ad = new AlertDialog.Builder(mContext);
+            ad.setTitle("Options")
+                    .setMessage("Please select options")
+                    .setCancelable(false)
+                    .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.d(TAG, "Left: Exit");
+                            moveTaskToBack(true);
+                            finish();
+                        }
+                    })
+                    .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.d(TAG, "Middle: Cancel");
+                            dialog.cancel();
+                        }
+                    })
+                    .setNegativeButton("Logout", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Log.d(TAG, "Right: Logout");
+                            MainActivity.callFacebookLogout();
+                            moveTaskToBack(true);
+                            finish();
+/*                          Intent intentHome = new Intent(mContext, MainActivity.class);
+                            intentHome.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            intentHome.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                            startActivity(intentHome);
+                            finish();*/
+                        }
+                    });
+            AlertDialog dialog = ad.create();
+            dialog.show();
         }
-        return super.onKeyUp(keyCode, event);
+
+        return true;//super.onKeyUp(keyCode, event);
     }
 
     @Override
@@ -498,6 +471,70 @@ public class ClientActivity extends AppCompatActivity {
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+    }
+
+    public static class customExpandableList extends SimpleExpandableListAdapter {
+        final private ExpandableListView mExpListView;
+
+        public customExpandableList(Context context,
+                                    List<? extends Map<String, ?>> groupData, int groupLayout,
+                                    String[] groupFrom, int[] groupTo,
+                                    List<? extends List<? extends Map<String, ?>>> childData,
+                                    int childLayout, String[] childFrom, int[] childTo, ExpandableListView expListView) {
+            super(context, groupData, groupLayout, groupLayout, groupFrom, groupTo, childData,
+                    childLayout, childLayout, childFrom, childTo);
+            mExpListView = expListView;
+        }
+
+        @Override
+        public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
+                                 ViewGroup parent) {
+            View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
+
+            // Show Apply Button If it's new requests (Not applied yet)
+            Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
+            final Button apply_btn = (Button) view.findViewById(R.id.request_apply_btn);
+            if (groupdata.get("IS_APPLIED").equals("TRUE")) {
+                Log.d(TAG, "IS_APPLIED = TRUE");
+                disableButton(apply_btn);
+            } else {
+                enableButton(apply_btn);
+                apply_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d(TAG, "btn onClick");
+                        int request_id = Integer.parseInt((String) view.getTag(R.id.request_apply_btn));
+                        if (!RequestManager.bid(Session.GetInstance(), request_id))
+                            Log.d(TAG, "Failed to BID, req_id:" + Integer.toString(request_id));
+                        //mExpListView.invalidateViews();
+                        disableButton(apply_btn);
+                        ExpandableListAdapter ad = mExpListView.getExpandableListAdapter();
+                        Map<String, String> groupdata = (Map<String, String>) ad.getGroup((int) view.getTag(R.id.request_apply_btn + 1));
+                        groupdata.put("IS_APPLIED", "TRUE");
+                    }
+                });
+            }
+                    /*Log.d(TAG, "getGroupView  pos"+Integer.toString(groupPosition)+
+                            ", APPLIED:"+groupdata.get("IS_APPLIED")+", ID:"+groupdata.get("ID"));*/
+            apply_btn.setVisibility(View.VISIBLE);
+            apply_btn.setTag(R.id.request_apply_btn, groupdata.get("ID"));
+            apply_btn.setTag(R.id.request_apply_btn + 1, groupPosition);
+            return view;
+        }
+
+        private void disableButton(final Button apply_btn) {
+            apply_btn.setText("Applied");
+            apply_btn.setOnClickListener(null);
+            apply_btn.setClickable(false);
+            apply_btn.setBackgroundColor(0xFF9AF0E5);
+        }
+
+        private void enableButton(final Button apply_btn) {
+            apply_btn.setText("Apply");
+            apply_btn.setBackgroundColor(0xFF54C7B8);
+            apply_btn.setClickable(true);
+
+        }
     }
 
     /**
