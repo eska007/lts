@@ -25,14 +25,15 @@ public class AccessManager {
 
         if (MainActivity.mPrefs.getBoolean("registration", false) == false) {
             Log.d(TAG, "Start Sel Registration");
-            startOtherActivity(context, "com.kaist.lts.SelectRegistration");
+            startOtherActivity(context, SELREG_CLASS_NAME);
         } else {
-            startOtherActivity(context, "com.kaist.lts.ClientActivity");
+            Log.d(TAG, "Start ClientActivity");
+            startOtherActivity(context, CLIENT_CLASS_NAME);
         }
 
         if (Login.reg_id) {
             Log.d(TAG, "Start ClientActivity");
-            startOtherActivity(context, "com.kaist.lts.ClientActivity");
+            startOtherActivity(context, CLIENT_CLASS_NAME);
         }
     }
 

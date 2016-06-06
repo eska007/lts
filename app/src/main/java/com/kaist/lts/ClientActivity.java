@@ -181,6 +181,10 @@ public class ClientActivity extends AppCompatActivity {
 
         // Get my new request list
         JSONObject myprofile = ProfileManager.getMyInfo(Session.GetInstance());
+        if (myprofile == null) {
+            Log.e(TAG, "Profile info is null!");
+            return;
+        }
         String new_request_list = (String) myprofile.get("new_request");
         Log.d(TAG, new_request_list);
 
@@ -462,7 +466,7 @@ public class ClientActivity extends AppCompatActivity {
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
             switch (pageViewNumber) {
                 case PAGE_NUM_NOTIFY:
-                    //showRequestList(getActivity(), rootView);
+                    showRequestList(getActivity(), rootView);
                     break;
                 case PAGE_NUM_REQUEST:
                     showRequestItems(getActivity(), rootView);
