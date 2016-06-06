@@ -105,7 +105,6 @@ public class ClientActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     fh = new FileHandler();
                     showFileChooser(ac);
-
                 }
             });
         }

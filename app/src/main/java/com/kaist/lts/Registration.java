@@ -162,16 +162,16 @@ public class Registration extends AppCompatActivity {
             switch (msg.what) {
                 case RESULT_REGISTRATION:
                     if (msg.arg1 == SUCCESS) {
-                        // TODO: goto main view and wait for login by user?
                         Log.d(TAG, "registration success");
                         Login.reg_id = true;
                         SharedPreferences.Editor prefEditor = MainActivity.mPrefs.edit();
                         prefEditor.putBoolean("registration", true);
                         prefEditor.apply();
-                        AccessManager.startOtherActivity(mConext, "com.kaist.lts.ClientActivity");
+
+                        //Start Client Activity
+                        AccessManager.startOtherActivity(mConext, AccessManager.CLIENT_CLASS_NAME);
                         finish();
                     } else {
-                        // TODO: Show error popup (ask user to adjust input again)
                         Log.d(TAG, "registration failed");
                         Login.reg_id = false;
                         SharedPreferences.Editor prefEditor = MainActivity.mPrefs.edit();

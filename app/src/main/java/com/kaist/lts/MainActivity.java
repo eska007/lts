@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private Context mContext;
     private CallbackManager callbackManager;
     private LoginButton facebookLoginButton;
+    private MessageHandler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +58,9 @@ public class MainActivity extends AppCompatActivity {
         //Display Intro page at 1st lunch app.
         boolean startStatus = mPrefs.getBoolean("startup", false);
         Log.d(TAG, "Bootup status: " + startStatus);
+
         if (!startStatus) {
-            startIntroActivity();
+            AccessManager.startOtherActivity(mContext, AccessManager.INTRO_CLASS_NAME);
         } else {
             setContentView(R.layout.activity_main);
             facebookLogin();
@@ -69,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
         Registbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(mContext, SelectRegistration.class));
+                //startActivity(new Intent(mContext, SelectRegistration.class));
+                AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
             }
         });
 
@@ -77,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(mContext, Login.class));
+                //startActivity(new Intent(mContext, Login.class));
+                AccessManager.startOtherActivity(mContext, AccessManager.LOGIN_CLASS_NAME);
             }
         });
 
@@ -115,43 +119,39 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private void startIntroActivity() {
-        Intent intent = new Intent();
-        intent.setClassName("com.kaist.lts", "com.kaist.lts.Intro");
-        mContext.startActivity(intent);
-        finish();
-    }
-
-    private void createFacebookTracker() {
+    private void getFacebookTracker() {
         Log.d(TAG, "createFacebookTracker");
 
         //if (accessTokenTracker != null && accessToken != null) return;
-        accessTokenTracker = new AccessTokenTracker() {
-            @Override
-            protected void onCurrentAccessTokenChanged(
-                    AccessToken oldAccessToken,
-                    AccessToken currentAccessToken) {
-                // Set the access token using
-                // currentAccessToken when it's loaded or set.
-                this.stopTracking();
-                accessToken = currentAccessToken;
-            }
-        };
+        if (accessTokenTracker == null) {
+            accessTokenTracker = new AccessTokenTracker() {
+                @Override
+                protected void onCurrentAccessTokenChanged(
+                        AccessToken oldAccessToken,
+                        AccessToken currentAccessToken) {
+                    // Set the access token using
+                    // currentAccessToken when it's loaded or set.
+                    this.stopTracking();
+                    accessToken = currentAccessToken;
+                }
+            };
+        }
         // If the access token is available already assign it.
         accessToken = AccessToken.getCurrentAccessToken();
 
 /*        if (accessToken != null) {
             Log.d(TAG, "Facebook user ID : " + accessToken.getUserId());
         }*/
-
-        profileTracker = new ProfileTracker() {
-            @Override
-            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                this.stopTracking();
-                Profile.setCurrentProfile(currentProfile);
-                profile = currentProfile;
-            }
-        };
+        if (profileTracker == null) {
+            profileTracker = new ProfileTracker() {
+                @Override
+                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                    this.stopTracking();
+                    Profile.setCurrentProfile(currentProfile);
+                    profile = currentProfile;
+                }
+            };
+        }
         profile = Profile.getCurrentProfile();
         profileTracker.startTracking();
 
@@ -159,7 +159,9 @@ public class MainActivity extends AppCompatActivity {
             Login.id = profile.getId();
             Login.given_name = profile.getLastName();
             Login.sur_name = profile.getFirstName();
-            Login.tryTocheckID(Login.id, new MessageHandler());
+
+            handler = new MessageHandler();
+            Login.status = Login.tryTocheckID(Login.id, handler);
 
             Log.d(TAG, "Facebook ID: " + Login.id + ", Name: " + Login.given_name + Login.sur_name);
         }
@@ -168,7 +170,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         Log.d(TAG, "onResume");
-        checkFbLoginStatus();
+        getFacebookTracker();
+        if (!Login.status) {
+            AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
+        } else {
+            checkFbLoginStatus();
+        }
         super.onResume();
     }
 
@@ -235,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "Success!");
-                createFacebookTracker();
+                getFacebookTracker();
                 createAccessManager();
                 finish();
             }
@@ -281,10 +288,13 @@ public class MainActivity extends AppCompatActivity {
                     if (msg.arg1 == Login.SUCCESS) {
                         Log.d(TAG, "checkID Success");
                         Login.reg_id = true;
-                        startActivity(new Intent(mContext, ClientActivity.class));
+                        Login.status = true;
+                        AccessManager.startOtherActivity(mContext, AccessManager.CLIENT_CLASS_NAME);
                     } else {
                         Log.d(TAG, "checkID Failed");
-                        startActivity(new Intent(mContext, SelectRegistration.class));
+                        Login.reg_id = false;
+                        Login.status = false;
+                        AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
                     }
                     finish();
                     break;

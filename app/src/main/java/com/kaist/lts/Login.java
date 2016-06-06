@@ -24,6 +24,7 @@ public class Login extends AppCompatActivity {
     final static int FAILED = 0;
     static MessageHandler mHandler = null;
     static boolean reg_id = false;
+    static boolean status = false;
     static String id;
     static String given_name;
     static String sur_name;
@@ -56,11 +57,10 @@ public class Login extends AppCompatActivity {
         bg.start();
     }
 
-    static public void tryTocheckID(final String id, final Handler handler) {
+    static public boolean tryTocheckID(final String id, final Handler handler) {
 
-        if (handler == null) {
-            Log.d(TAG, "Handler is null");
-            return;
+        if (id == null || handler == null || id.isEmpty()) {
+            return false;
         }
 
         Runnable run = new Runnable() {
@@ -77,6 +77,7 @@ public class Login extends AppCompatActivity {
         };
         Thread bg = new Thread(run);
         bg.start();
+        return true;
     }
 
     static private JSONObject generateJson(String id, String password) {

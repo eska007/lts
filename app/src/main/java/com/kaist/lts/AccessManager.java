@@ -8,6 +8,12 @@ import android.util.Log;
  * Created by user on 2016-05-17.
  */
 public class AccessManager {
+    static final String LTS_PACKAGE_NAME = "com.kaist.lts";
+    static final String INTRO_CLASS_NAME = "com.kaist.lts.Intro";
+    static final String CLIENT_CLASS_NAME = "com.kaist.lts.ClientActivity";
+    static final String REGIST_CLASS_NAME = "com.kaist.lts.Registration";
+    static final String SELREG_CLASS_NAME = "com.kaist.lts.SelectRegistration";
+    static final String LOGIN_CLASS_NAME = "com.kaist.lts.Login";
     private static AccessManager am;
     final String TAG = "[LTS][AccessManager]";
 
@@ -37,7 +43,7 @@ public class AccessManager {
     static public void startOtherActivity(Context context, String className) {
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setClassName("com.kaist.lts", className);
+        intent.setClassName(LTS_PACKAGE_NAME, className);
         context.startActivity(intent);
     }
 
