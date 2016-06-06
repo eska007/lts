@@ -172,7 +172,6 @@ public class FileHandler {
         final Context c = context;
         final String fp = filePath;
 
-
         mWakeLock = wakeLock;
 
         Handler mHandler = new Handler(Looper.getMainLooper());
@@ -184,7 +183,6 @@ public class FileHandler {
                     // DEBUG
                     // Toast.makeText(c, "Upload File", Toast.LENGTH_SHORT).show();
                     uploadFile(c, fp);
-
                 } catch (OutOfMemoryError e) {
 
                     runOnUiThread(new Runnable() {
@@ -193,9 +191,7 @@ public class FileHandler {
                             Toast.makeText(c, "Insufficient Memory!", Toast.LENGTH_SHORT).show();
                         }
                     });
-
                 }
-
             }
         }, 3000);
     }

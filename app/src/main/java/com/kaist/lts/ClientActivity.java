@@ -61,6 +61,11 @@ public class ClientActivity extends AppCompatActivity {
     static Context mContext;
     static FileHandler fh;
     static String selectedFilePath;
+    static Spinner type;
+    static Spinner level;
+    static Spinner payment;
+    static Spinner lang;
+    static String uploadFilePath;
     static private PowerManager.WakeLock wakeLock;
     static private Handler mHandler;
     static private ProgressDialog dialog;
@@ -118,6 +123,11 @@ public class ClientActivity extends AppCompatActivity {
                     if (fh != null) {
                         Log.d(TAG, "Display progress bar");
                         dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
+
+                        type.getSelectedItem();
+                        level.getSelectedItem();
+                        payment.getSelectedItem();
+
                         FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
                         mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
                     }
@@ -127,9 +137,10 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private static void createSpinners(View view) {
+        //Display all the view of new request
         displayRequestItems(view);
 
-        Spinner type = (Spinner) view.findViewById(R.id.spinner_type);
+        type = (Spinner) view.findViewById(R.id.spinner_type);
         type.setVisibility(View.VISIBLE);
         ArrayAdapter adapter1 = ArrayAdapter.createFromResource(mContext, R.array.type, android.R.layout.simple_spinner_item);
         adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -137,27 +148,36 @@ public class ClientActivity extends AppCompatActivity {
         //type.setOnItemClickListener(mClickListener);
 
         //Select type of level
-        Spinner level = (Spinner) view.findViewById(R.id.spinner_level);
+        level = (Spinner) view.findViewById(R.id.spinner_level);
         level.setVisibility(View.VISIBLE);
         ArrayAdapter adapter2 = ArrayAdapter.createFromResource(mContext, R.array.level, android.R.layout.simple_spinner_item);
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         level.setAdapter(adapter2);
 
-        Spinner payment = (Spinner) view.findViewById(R.id.spinner_pay);
+        payment = (Spinner) view.findViewById(R.id.spinner_pay);
         payment.setVisibility(View.VISIBLE);
         ArrayAdapter adapter3 = ArrayAdapter.createFromResource(mContext, R.array.pay, android.R.layout.simple_spinner_item);
         adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         payment.setAdapter(adapter3);
+
+        lang = (Spinner) view.findViewById(R.id.spinner_lang);
+        lang.setVisibility(View.VISIBLE);
+        ArrayAdapter adapter4 = ArrayAdapter.createFromResource(mContext, R.array.lang, android.R.layout.simple_spinner_item);
+        adapter4.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        lang.setAdapter(adapter4);
     }
 
     private static void displayRequestItems(View view) {
         TextView newText = (TextView) view.findViewById(R.id.new_request);
+        TextView langTest = (TextView) view.findViewById(R.id.lang);
         TextView typeText = (TextView) view.findViewById(R.id.type);
         TextView levelText = (TextView) view.findViewById(R.id.level);
         TextView payText = (TextView) view.findViewById(R.id.pay);
+
         Button dateBt = (Button) view.findViewById(R.id.end_date);
 
         newText.setVisibility(View.VISIBLE);
+        langTest.setVisibility(View.VISIBLE);
         typeText.setVisibility(View.VISIBLE);
         levelText.setVisibility(View.VISIBLE);
         payText.setVisibility(View.VISIBLE);
