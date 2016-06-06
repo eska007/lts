@@ -58,14 +58,16 @@ public class ClientActivity extends AppCompatActivity {
     static final int PAGE_NUM_PROFILE = 3;
     static final int PICK_FILE_REQUEST = 1;
     static public int TIME_OUT = 0;
+
     static Context mContext;
     static FileHandler fh;
-    static String selectedFilePath;
     static Spinner type;
     static Spinner level;
     static Spinner payment;
     static Spinner lang;
-    static String uploadFilePath;
+    static String dueDate;
+    static String selectedFilePath;
+
     static private PowerManager.WakeLock wakeLock;
     static private Handler mHandler;
     static private ProgressDialog dialog;
@@ -101,7 +103,7 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private static void createUploadItems(View view, final Activity ac) {
-        Log.d(TAG, "Show Upload items");
+        Log.d(TAG, "Show upload items");
         ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
         if (attachIcon != null) {
             attachIcon.setVisibility(View.VISIBLE);
@@ -124,10 +126,18 @@ public class ClientActivity extends AppCompatActivity {
                         Log.d(TAG, "Display progress bar");
                         dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
 
-                        type.getSelectedItem();
-                        level.getSelectedItem();
-                        payment.getSelectedItem();
+                        //Generate json format
+                        JSONObject req = new JSONObject();
 
+                        //req.put("id", Login.id);
+                        req.put("target_language", lang.getSelectedItem());
+                        req.put("doc_type", type.getSelectedItem());
+                        req.put("level", level.getSelectedItem());
+                        req.put("cost", payment.getSelectedItem());
+                        req.put("due_date", dueDate);
+                        req.put("sorce_doc_path", selectedFilePath);
+
+                        RequestManager.addNewRequest(Session.GetInstance(), req);
                         FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
                         mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
                     }
@@ -461,7 +471,8 @@ public class ClientActivity extends AppCompatActivity {
                             new DatePickerDialog.OnDateSetListener() {
                                 @Override
                                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                                    Toast.makeText(mContext, year + "년" + monthOfYear + "월" + dayOfMonth + "일", Toast.LENGTH_SHORT).show();
+                                    dueDate = year + "-" + monthOfYear + "-" + dayOfMonth;
+                                    Toast.makeText(mContext, dueDate, Toast.LENGTH_SHORT).show();
                                 }
                             };
 
