@@ -51,15 +51,8 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;//getApplicationContext();
         mPrefs = getSharedPreferences("lts", MODE_PRIVATE);
 
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        accessToken = AccessToken.getCurrentAccessToken();
-        if (accessToken != null) {
-            Log.d(TAG, "Load the Client info");
-            createAccessManager();
-            setContentView(R.layout.activity_main);
-            facebookLogin();
-            return;
-        }
+        FacebookSdk.sdkInitialize(mContext);
+        if (checkFbLoginStatus()) return;
 
         //Display Intro page at 1st lunch app.
         boolean startStatus = mPrefs.getBoolean("startup", false);
@@ -107,6 +100,19 @@ public class MainActivity extends AppCompatActivity {
                 bg.start();
             }
         });
+    }
+
+    private boolean checkFbLoginStatus() {
+        Log.d(TAG, "checkFbLoginStatus");
+        accessToken = AccessToken.getCurrentAccessToken();
+        if (accessToken != null) {
+            Log.d(TAG, "Load the Client info");
+            createAccessManager();
+            setContentView(R.layout.activity_main);
+            facebookLogin();
+            return true;
+        }
+        return false;
     }
 
     private void startIntroActivity() {
@@ -162,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         Log.d(TAG, "onResume");
+        checkFbLoginStatus();
         super.onResume();
     }
 
@@ -213,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
             for (Signature signature : info.signatures) {
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                Log.d(TAG, Base64.encodeToString(md.digest(), Base64.DEFAULT));
+                Log.d(TAG, "hash-Key:  " + Base64.encodeToString(md.digest(), Base64.DEFAULT));
             }
         } catch (Exception e) {
             Log.e(TAG, e.toString());

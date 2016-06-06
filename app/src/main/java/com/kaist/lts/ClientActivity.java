@@ -286,7 +286,7 @@ public class ClientActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             moveTaskToBack(true);
             finish();
-            android.os.Process.killProcess(android.os.Process.myPid());
+//       `     android.os.Process.killProcess(android.os.Process.myPid());
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -434,12 +434,13 @@ public class ClientActivity extends AppCompatActivity {
             if (endDate != null) {
                 endDate.setVisibility(View.VISIBLE);
                 endDate.setOnClickListener(new Button.OnClickListener() {
-                    private DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
-                        @Override
-                        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                            Toast.makeText(mContext, year + "년" + monthOfYear + "월" + dayOfMonth + "일", Toast.LENGTH_SHORT).show();
-                        }
-                    };
+                    private DatePickerDialog.OnDateSetListener listener =
+                            new DatePickerDialog.OnDateSetListener() {
+                                @Override
+                                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                                    Toast.makeText(mContext, year + "년" + monthOfYear + "월" + dayOfMonth + "일", Toast.LENGTH_SHORT).show();
+                                }
+                            };
 
                     @Override
                     public void onClick(View view) {
@@ -470,8 +471,6 @@ public class ClientActivity extends AppCompatActivity {
                 case PAGE_NUM_PROFILE:
                 default:
             }
-
-
             //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 
