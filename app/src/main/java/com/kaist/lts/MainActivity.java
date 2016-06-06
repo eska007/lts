@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onResume");
         getFacebookTracker();
         if (!Login.status) {
-            AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
+            //AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
         } else {
             checkFbLoginStatus();
         }

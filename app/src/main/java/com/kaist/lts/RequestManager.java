@@ -10,6 +10,24 @@ import org.json.simple.JSONObject;
 public class RequestManager {
     static final String TAG = "[LTS][RequestManager]";
 
+    public class LANGUAGE {
+        public static final int KOREAN = 0;
+        public static final int ENGLISH = 1;
+        public static final int CHINESE = 2;
+        public static final int JAPANESE = 3;
+    }
+
+    public static int getLanuageNum(String str) {
+        switch(str.toLowerCase()) {
+            case "korean": return LANGUAGE.KOREAN;
+            case "english": return LANGUAGE.ENGLISH;
+            case "chinese": return LANGUAGE.CHINESE;
+            case "japanese": return LANGUAGE.JAPANESE;
+            default:
+                return LANGUAGE.ENGLISH;
+        }
+    }
+
     public static int addNewRequest(ISession cs, JSONObject input) {
         //JSONObject input = new JSONObject();
         input.put("command", "ADD_NEW_REQUEST");
@@ -26,7 +44,7 @@ public class RequestManager {
         if (ret != ISession.RetVal.RET_OK)
             return -1;
 
-        return (int) (output.get("id")); // Return request_id, it's positive value if it's valid.
+        return (((Long)output.get("id")).intValue()); // Return request_id, it's positive value if it's valid.
         // TODO: Try "new Notifier(Notifier.Command.GET_LIST_OF_CANDIDATES,this.getApplicationContext());" after this function,
     }
 
@@ -92,12 +110,4 @@ public class RequestManager {
         Log.e(TAG, "There is no meaningful info");
         return null;
     }
-
-    public class LANGUAGE {
-        public static final int KOREAN = 0;
-        public static final int ENGLISH = 1;
-        public static final int CHINESE = 2;
-        public static final int JAPANESE = 3;
-    }
-
 }

@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -24,13 +25,88 @@ public class Notifier {
         NEW_REQUEST("GET_NEW_REQUEST"), // by Translator / Reviewer, Invoke whenever,  RETURN: Integer / RequestID
         LIST_OF_CANDIDATES("GET_LIST_OF_CANDIDATES"), // by Requester / Translator,  Invoke after adding new request, RETURN: String / Series of Member IDs ";ID1;ID2;ID3;..."
         RESULT_OF_BID("GET_RESULT_OF_BID"),   // by Translator or Reviewer, Invoke after bid,   RETURN: String / Selected Member ID
-        RESULT_OF_REVIEW("GET_RESULT_OF_WORK");   // by Translator or Requester, Invoke after ReviewRequest,  RETURN: ISession.RetVal
+        RESULT_OF_WORK("GET_RESULT_OF_WORK");   // by Translator or Requester, Invoke after ReviewRequest,  RETURN: ISession.RetVal
         private String cmd;
+
         Command(String str) {
             cmd = str;
         }
         public String get() {
             return cmd;
+        }
+
+        boolean parseOutput(int request_id, JSONObject output, NotificationCompat.Builder builder) {
+            switch(this) {
+                case NEW_REQUEST:{
+                    String id;
+                    if (output.get("new_request") != null)
+                        id = (String) output.get("new_request");
+                    else if (output.get("id") != null)
+                        id = (String) output.get("id");
+                    else
+                        id = output.toString();
+                    if (Integer.parseInt(id) != request_id)
+                        Log.e(TAG, "ERROR!! given request id: "+id +",  expected id: " + Integer.toString(request_id));
+                    Bundle bd = new Bundle();
+                    bd.putString("request_id", id);
+                    builder.setExtras(bd);
+                    builder.setTicker("New request");
+                    builder.setContentTitle("New request id: " + id);
+                    return true;
+                }
+
+                case LIST_OF_CANDIDATES: {
+                    String key = "translator_candidate_list";
+                    String candidates = (String) output.get(key);
+                    if (candidates == null || candidates.isEmpty()) {
+                        key = "reviewer_candidate_list";
+                        candidates = (String)output.get(key);
+                        if (candidates == null || candidates.isEmpty()) {
+                            return false;
+                        }
+                    }
+                    Bundle bd = new Bundle();
+                    bd.putStringArray(key, candidates.split(";"));
+                    bd.putInt("request_id", request_id);
+                    builder.setExtras(bd);
+                    builder.setTicker("List of candidates");
+                    builder.setContentText("Request id: " + request_id);
+                    builder.setContentTitle(key + " : " + candidates.replace(';', ','));
+                    return true;
+                }
+
+                case RESULT_OF_BID: {
+                    String key = "translator_id";
+                    String employee = (String) output.get(key);
+                    if (employee == null || employee.isEmpty()) {
+                        key = "reviewer_id";
+                        employee = (String)output.get(key);
+                        if (employee == null || employee.isEmpty()) {
+                            return false;
+                        }
+                    }
+                    Bundle bd = new Bundle();
+                    bd.putString(key, employee);
+                    bd.putInt("request_id", request_id);
+                    builder.setExtras(bd);
+                    builder.setContentTitle(key+": " + employee);
+                    builder.setContentText("Request id: " + request_id);
+                    return true;
+                }
+
+                case RESULT_OF_WORK: {
+                    Bundle bd = new Bundle();
+                    bd.putString("request_id", Integer.toString(request_id));
+                    builder.setExtras(bd);
+                    builder.setContentText("Request ID : " + Integer.toString(request_id));
+                    return true;
+                }
+
+                default:
+                    break;
+            }
+
+            return false;
         }
     }
 
@@ -71,22 +147,13 @@ public class Notifier {
                         NotificationManager nm = (NotificationManager)mContext.getSystemService(Context.NOTIFICATION_SERVICE);
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext)
                                 .setSmallIcon(R.drawable.ic_stat_new_message)
-                                .setTicker("LTS Notification Ticker")
                                 .setContentIntent(intent)
-                                .setContentTitle(mCmd.get())
                                 .setVibrate(new long [] {0, 1000})
                                 .setAutoCancel(true);
-
-                        String id;
-                        if (output.get("new_request") != null)
-                            id = (String) output.get("new_request");
-                        else if (output.get("id") != null)
-                            id = (String) output.get("id");
-                        else
-                            id = output.toString();
-                        builder.setContentText("Request ID : " + id);
-                        nm.notify(0, builder.build());
-                        break;
+                        if (true == mCmd.parseOutput(mRequestID, output, builder)) {
+                            nm.notify(0, builder.build());
+                            break;
+                        }
                     }
 
                     try {
