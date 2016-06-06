@@ -63,9 +63,16 @@ public class ClientActivity extends AppCompatActivity {
     static final int PAGE_NUM_PROFILE = 3;
     static final int PICK_FILE_REQUEST = 1;
     static public int TIME_OUT = 0;
+
     static Context mContext;
     static FileHandler fh;
+    static Spinner type;
+    static Spinner level;
+    static Spinner payment;
+    static Spinner lang;
+    static String dueDate;
     static String selectedFilePath;
+
     static private PowerManager.WakeLock wakeLock;
     static private Handler mHandler;
     static private ProgressDialog dialog;
@@ -101,7 +108,7 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private static void createUploadItems(View view, final Activity ac) {
-        Log.d(TAG, "Show Upload items");
+        Log.d(TAG, "Show upload items");
         ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
         if (attachIcon != null) {
             attachIcon.setVisibility(View.VISIBLE);
@@ -110,7 +117,6 @@ public class ClientActivity extends AppCompatActivity {
                 public void onClick(View view) {
                     fh = new FileHandler();
                     showFileChooser(ac);
-
                 }
             });
         }
@@ -124,6 +130,19 @@ public class ClientActivity extends AppCompatActivity {
                     if (fh != null) {
                         Log.d(TAG, "Display progress bar");
                         dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
+
+                        //Generate json format
+                        JSONObject req = new JSONObject();
+
+                        //req.put("id", Login.id);
+                        req.put("target_language", lang.getSelectedItem());
+                        req.put("doc_type", type.getSelectedItem());
+                        req.put("level", level.getSelectedItem());
+                        req.put("cost", payment.getSelectedItem());
+                        req.put("due_date", dueDate);
+                        req.put("sorce_doc_path", selectedFilePath);
+
+                        RequestManager.addNewRequest(Session.GetInstance(), req);
                         FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
                         mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
                     }
@@ -133,9 +152,10 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private static void createSpinners(View view) {
+        //Display all the view of new request
         displayRequestItems(view);
 
-        Spinner type = (Spinner) view.findViewById(R.id.spinner_type);
+        type = (Spinner) view.findViewById(R.id.spinner_type);
         type.setVisibility(View.VISIBLE);
         ArrayAdapter adapter1 = ArrayAdapter.createFromResource(mContext, R.array.type, android.R.layout.simple_spinner_item);
         adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -143,27 +163,36 @@ public class ClientActivity extends AppCompatActivity {
         //type.setOnItemClickListener(mClickListener);
 
         //Select type of level
-        Spinner level = (Spinner) view.findViewById(R.id.spinner_level);
+        level = (Spinner) view.findViewById(R.id.spinner_level);
         level.setVisibility(View.VISIBLE);
         ArrayAdapter adapter2 = ArrayAdapter.createFromResource(mContext, R.array.level, android.R.layout.simple_spinner_item);
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         level.setAdapter(adapter2);
 
-        Spinner payment = (Spinner) view.findViewById(R.id.spinner_pay);
+        payment = (Spinner) view.findViewById(R.id.spinner_pay);
         payment.setVisibility(View.VISIBLE);
         ArrayAdapter adapter3 = ArrayAdapter.createFromResource(mContext, R.array.pay, android.R.layout.simple_spinner_item);
         adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         payment.setAdapter(adapter3);
+
+        lang = (Spinner) view.findViewById(R.id.spinner_lang);
+        lang.setVisibility(View.VISIBLE);
+        ArrayAdapter adapter4 = ArrayAdapter.createFromResource(mContext, R.array.lang, android.R.layout.simple_spinner_item);
+        adapter4.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        lang.setAdapter(adapter4);
     }
 
     private static void displayRequestItems(View view) {
         TextView newText = (TextView) view.findViewById(R.id.new_request);
+        TextView langTest = (TextView) view.findViewById(R.id.lang);
         TextView typeText = (TextView) view.findViewById(R.id.type);
         TextView levelText = (TextView) view.findViewById(R.id.level);
         TextView payText = (TextView) view.findViewById(R.id.pay);
+
         Button dateBt = (Button) view.findViewById(R.id.end_date);
 
         newText.setVisibility(View.VISIBLE);
+        langTest.setVisibility(View.VISIBLE);
         typeText.setVisibility(View.VISIBLE);
         levelText.setVisibility(View.VISIBLE);
         payText.setVisibility(View.VISIBLE);
@@ -372,7 +401,7 @@ public class ClientActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
             moveTaskToBack(true);
             finish();
-            android.os.Process.killProcess(android.os.Process.myPid());
+//       `     android.os.Process.killProcess(android.os.Process.myPid());
         }
         return super.onKeyUp(keyCode, event);
     }
@@ -520,12 +549,14 @@ public class ClientActivity extends AppCompatActivity {
             if (endDate != null) {
                 endDate.setVisibility(View.VISIBLE);
                 endDate.setOnClickListener(new Button.OnClickListener() {
-                    private DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
-                        @Override
-                        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                            Toast.makeText(mContext, year + "년" + monthOfYear + "월" + dayOfMonth + "일", Toast.LENGTH_SHORT).show();
-                        }
-                    };
+                    private DatePickerDialog.OnDateSetListener listener =
+                            new DatePickerDialog.OnDateSetListener() {
+                                @Override
+                                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                                    dueDate = year + "-" + monthOfYear + "-" + dayOfMonth;
+                                    Toast.makeText(mContext, dueDate, Toast.LENGTH_SHORT).show();
+                                }
+                            };
 
                     @Override
                     public void onClick(View view) {
@@ -548,7 +579,7 @@ public class ClientActivity extends AppCompatActivity {
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
             switch (pageViewNumber) {
                 case PAGE_NUM_NOTIFY:
-                    //showRequestList(getActivity(), rootView);
+                    showRequestList(getActivity(), rootView);
                     break;
                 case PAGE_NUM_REQUEST:
                     showRequestItems(getActivity(), rootView);
@@ -556,8 +587,6 @@ public class ClientActivity extends AppCompatActivity {
                 case PAGE_NUM_PROFILE:
                 default:
             }
-
-
             //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 

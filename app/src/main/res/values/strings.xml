@@ -8,7 +8,9 @@
     <string name="title_fragment_prof">Profile</string>
     <string name="title_fragment_req">Request</string>
     <string name="title_activity_intro">Intro</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="lang_prompt">Translation language</string>
     <string name="type_prompt">Translation type</string>
     <string name="level_prompt">Translator level</string>
-    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="pay_prompt">Payment per 1-page</string>
 </resources>
