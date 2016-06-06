@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.SimpleExpandableListAdapter;
@@ -46,9 +47,13 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 public class ClientActivity extends AppCompatActivity {
@@ -175,18 +180,28 @@ public class ClientActivity extends AppCompatActivity {
         title1.setVisibility(View.VISIBLE);
         title2.setVisibility(View.VISIBLE);
 
-        // Prepare request item listview
-        ExpandableListView mExpListView = (ExpandableListView) view.findViewById(R.id.request_list_view);
+        // Get my profiles
+        JSONObject myprofile = null;
+        myprofile = ProfileManager.getMyInfo(Session.GetInstance());
+        if (myprofile == null) {
+            Log.e(TAG, "No response from ProfileManager.getMyInfo");
+            return;
+        }
+
+        // Get my all requests list (Include work-done, working, and not-applied requests)
+        String all_requests_list = (String)myprofile.get("new_request");
+        Log.d(TAG, "all_requests_list: " + all_requests_list);
+
+        // Get not-applied requests (
+        String applied_requests_list= (String)myprofile.get("_applied_request");
+        Set<String> applied_requests__set = new HashSet<String>();
+        Collections.addAll(applied_requests__set, applied_requests_list.split(";"));
+        Log.d(TAG, "_applied_request: " + applied_requests_list);
+
+        // Get each request information and  Fill the Group/Child data of Expandable ListView
         ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
         ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
-
-        // Get my new request list
-        JSONObject myprofile = ProfileManager.getMyInfo(Session.GetInstance());
-        String new_request_list = (String) myprofile.get("new_request");
-        Log.d(TAG, new_request_list);
-
-        // Get each request information
-        StringTokenizer st = new StringTokenizer(new_request_list, ";"); // Parse new request list (ex. new_request_list = ";13;52;1;32")
+        StringTokenizer st = new StringTokenizer(all_requests_list, ";"); // Parse new request list (ex. all_requests_list = ";13;52;1;32")
         while (st.hasMoreTokens()) {
             String id_str = st.nextToken();
             int id = Integer.parseInt(id_str);
@@ -197,6 +212,10 @@ public class ClientActivity extends AppCompatActivity {
             Map<String, String> curr = new HashMap<String, String>();
             curr.put("ID", id_str);
             curr.put("SUBJECT", (String) request.get("subject"));
+            if (applied_requests__set.contains(id_str))
+                curr.put("IS_APPLIED", "TRUE");
+            else
+                curr.put("IS_APPLIED", "FALSE");
             mGroupList.add(curr);
 
             ArrayList<Map<String, String>> children = new ArrayList<Map<String, String>>();
@@ -214,7 +233,8 @@ public class ClientActivity extends AppCompatActivity {
             mChildList.add(children);
         }
 
-        mExpListView.setAdapter(new SimpleExpandableListAdapter(
+        final ExpandableListView mExpListView = (ExpandableListView) view.findViewById(R.id.request_list_view);
+        mExpListView.setAdapter(new customExpandableList(
                 ac.getApplicationContext(),
                 mGroupList,
                 R.layout.request_list_row,
@@ -223,11 +243,77 @@ public class ClientActivity extends AppCompatActivity {
                 mChildList,
                 R.layout.detail_request_list_row,
                 new String[]{"ITEM", "DATA"},
-                new int[]{R.id.detail_req_list_item, R.id.detail_req_list_data}
-        ));
-
+                new int[]{R.id.detail_req_list_item, R.id.detail_req_list_data},
+                mExpListView
+            )
+        );
+        Log.d(TAG, "SetAdaptor");
         mExpListView.setVisibility(View.VISIBLE);
     }
+
+    public static class customExpandableList extends SimpleExpandableListAdapter {
+        final private ExpandableListView mExpListView;
+        public customExpandableList(Context context,
+                                          List<? extends Map<String, ?>> groupData, int groupLayout,
+                                          String[] groupFrom, int[] groupTo,
+                                          List<? extends List<? extends Map<String, ?>>> childData,
+                                          int childLayout, String[] childFrom, int[] childTo, ExpandableListView expListView) {
+            super(context, groupData, groupLayout, groupLayout, groupFrom, groupTo, childData,
+                    childLayout, childLayout, childFrom, childTo);
+            mExpListView = expListView;
+        }
+
+        @Override
+        public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
+                                 ViewGroup parent) {
+            View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
+
+            // Show Apply Button If it's new requests (Not applied yet)
+            Map<String,String> groupdata = (Map<String,String>)super.getGroup(groupPosition);
+            final Button apply_btn = (Button)view.findViewById(R.id.request_apply_btn);
+            if (groupdata.get("IS_APPLIED").equals((String)"TRUE")) {
+                Log.d(TAG, "IS_APPLIED = TRUE");
+                disableButton(apply_btn);
+            }else {
+                enableButton(apply_btn);
+                apply_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d(TAG, "btn onClick");
+                        int request_id = Integer.parseInt((String)view.getTag(R.id.request_apply_btn));
+                        if (!RequestManager.bid(Session.GetInstance(), request_id))
+                            Log.d(TAG, "Failed to BID, req_id:" + Integer.toString(request_id));
+                        //mExpListView.invalidateViews();
+                        disableButton(apply_btn);
+                        ExpandableListAdapter ad = mExpListView.getExpandableListAdapter();
+                        Map<String,String> groupdata = (Map<String,String>)ad.getGroup((int)view.getTag(R.id.request_apply_btn+1));
+                        groupdata.put("IS_APPLIED", "TRUE");
+                    }
+                });
+            }
+                    /*Log.d(TAG, "getGroupView  pos"+Integer.toString(groupPosition)+
+                            ", APPLIED:"+groupdata.get("IS_APPLIED")+", ID:"+groupdata.get("ID"));*/
+            apply_btn.setVisibility(View.VISIBLE);
+            apply_btn.setTag(R.id.request_apply_btn, groupdata.get("ID"));
+            apply_btn.setTag(R.id.request_apply_btn+1, groupPosition);
+            return view;
+        }
+
+        private void disableButton(final Button apply_btn) {
+            apply_btn.setText("Applied");
+            apply_btn.setOnClickListener(null);
+            apply_btn.setClickable(false);
+            apply_btn.setBackgroundColor(0xFF9AF0E5);
+        }
+
+        private void enableButton(final Button apply_btn) {
+            apply_btn.setText("Apply");
+            apply_btn.setBackgroundColor(0xFF54C7B8);
+            apply_btn.setClickable(true);
+
+        }
+    }
+
 
     @TargetApi(Build.VERSION_CODES.DONUT)
     @Override

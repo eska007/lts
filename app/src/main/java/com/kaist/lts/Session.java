@@ -72,7 +72,7 @@ public class Session implements ISession{
         con.setDoOutput(true);
         if (currentCookie != null) {
             con.setRequestProperty("cookie", currentCookie);
-            Log.d(TAG, "Reuse cookie:" + currentCookie);
+            //Log.d(TAG, "Reuse cookie:" + currentCookie);
         }
         con.setDefaultUseCaches(false);
         con.setDoInput(true);
@@ -85,7 +85,7 @@ public class Session implements ISession{
 
     private RetVal ConvertResult(String arg)
     {
-        Log.d(TAG, "ConvertResult : " + arg);
+        //Log.d(TAG, "ConvertResult : " + arg);
         switch(arg) {
             case "0":	return ISession.RetVal.RET_OK;
             case "-1":	return ISession.RetVal.RET_FAIL;
