@@ -142,7 +142,10 @@ public class ClientActivity extends AppCompatActivity {
                         req.put("level", level.getSelectedItem());
                         req.put("cost", payment.getSelectedItem());
                         req.put("due_date", dueDate);
-                        req.put("source_doc_path", selectedFilePath);
+                        String[] truncatedFilePath = selectedFilePath.split("/");
+                        String fileName = truncatedFilePath[truncatedFilePath.length - 1];
+                        Log.d(TAG, "file name: " + fileName);
+                        req.put("source_doc_path", fileName);
 
                         int request_id = RequestManager.addNewRequest(Session.GetInstance(), req);
                         if (request_id <= 0) {
@@ -470,7 +473,7 @@ public class ClientActivity extends AppCompatActivity {
 
                 Uri selectedFileUri = data.getData();
                 selectedFilePath = FileHandler.getPath(this, selectedFileUri);
-                Log.d(TAG, "Selected File Path:" + selectedFilePath);
+                Log.d(TAG, "Selected file:" + selectedFilePath);
 
 /*                if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
                     Toast.makeText(this, "upload file selected", Toast.LENGTH_SHORT).show();
