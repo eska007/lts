@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 public class Intro extends AppCompatActivity {
     private static final String TAG = "[LTS][Intro]";
@@ -125,16 +126,22 @@ public class Intro extends AppCompatActivity {
                     //Find People
                     ImageView introView1 = (ImageView) view.findViewById(R.id.intro_view1);
                     introView1.setVisibility(View.VISIBLE);
+                    TextView introView1Dsc = (TextView) view.findViewById(R.id.intro_view1_dsc);
+                    introView1Dsc.setVisibility(View.VISIBLE);
                     break;
                 case 2:
                     //Notification
                     ImageView introView2 = (ImageView) view.findViewById(R.id.intro_view2);
                     introView2.setVisibility(View.VISIBLE);
+                    TextView introView2Dsc = (TextView) view.findViewById(R.id.intro_view2_dsc);
+                    introView2Dsc.setVisibility(View.VISIBLE);
                     break;
                 case 3:
                     //Profiles
                     ImageView introView3 = (ImageView) view.findViewById(R.id.intro_view3);
                     introView3.setVisibility(View.VISIBLE);
+                    TextView introView3Dsc = (TextView) view.findViewById(R.id.intro_view3_dsc);
+                    introView3Dsc.setVisibility(View.VISIBLE);
                     break;
             }
         }

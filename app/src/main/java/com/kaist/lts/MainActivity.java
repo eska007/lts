@@ -25,6 +25,7 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
@@ -46,6 +47,11 @@ public class MainActivity extends AppCompatActivity {
     private LoginButton facebookLoginButton;
     private MessageHandler handler;
 
+    public static void callFacebookLogout() {
+        LoginManager mLoginManager = LoginManager.getInstance();
+        mLoginManager.logOut();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +59,12 @@ public class MainActivity extends AppCompatActivity {
         mPrefs = getSharedPreferences("lts", MODE_PRIVATE);
 
         FacebookSdk.sdkInitialize(mContext);
-        if (checkFbLoginStatus()) return;
+        setContentView(R.layout.activity_main);
+
+        //Check facebook login status
+        if (checkFbLoginStatus()) {
+            return;
+        }
 
         //Display Intro page at 1st lunch app.
         boolean startStatus = mPrefs.getBoolean("startup", false);
@@ -61,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (!startStatus) {
             AccessManager.startOtherActivity(mContext, AccessManager.INTRO_CLASS_NAME);
+            finish();
         } else {
-            setContentView(R.layout.activity_main);
             facebookLogin();
             getAppHashKey();
         }
@@ -119,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private void getFacebookTracker() {
+    private boolean getFacebookTracker() {
         Log.d(TAG, "createFacebookTracker");
 
         //if (accessTokenTracker != null && accessToken != null) return;
@@ -164,15 +175,18 @@ public class MainActivity extends AppCompatActivity {
             Login.status = Login.tryTocheckID(Login.id, handler);
 
             Log.d(TAG, "Facebook ID: " + Login.id + ", Name: " + Login.given_name + Login.sur_name);
+            return true;
         }
+        return false;
     }
 
     @Override
     protected void onResume() {
         Log.d(TAG, "onResume");
-        getFacebookTracker();
-        if (!Login.status) {
-            //AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
+       boolean ret = getFacebookTracker();
+        Log.d(TAG, "Login Status: " + Login.status + ", Registration: " + mPrefs.getBoolean("registration", false));
+        if (ret && !mPrefs.getBoolean("registration", false)) {
+            AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
         } else {
             checkFbLoginStatus();
         }
@@ -269,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (MainActivity.mPrefs.getBoolean("registration", false) == false) {
+        if (!MainActivity.mPrefs.getBoolean("registration", false)) {
             Log.d(TAG, "Start Sel Registration");
             AccessManager.startOtherActivity(mContext, "com.kaist.lts.SelectRegistration");
         } else {
@@ -287,12 +301,12 @@ public class MainActivity extends AppCompatActivity {
                 case Login.RESULT_CHECK_ID:
                     if (msg.arg1 == Login.SUCCESS) {
                         Log.d(TAG, "checkID Success");
-                        Login.reg_id = true;
+                        //Login.reg_id = true;
                         Login.status = true;
                         AccessManager.startOtherActivity(mContext, AccessManager.CLIENT_CLASS_NAME);
                     } else {
                         Log.d(TAG, "checkID Failed");
-                        Login.reg_id = false;
+                        //Login.reg_id = false;
                         Login.status = false;
                         AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
                     }
