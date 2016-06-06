@@ -28,8 +28,9 @@
         android:id="@+id/intro_view1"
         android:layout_width="200dp"
         android:layout_height="200dp"
+        android:layout_alignParentEnd="false"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true"
         android:layout_marginTop="93dp"
         android:src="@drawable/img_find"
         android:visibility="gone" />
@@ -41,7 +42,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="93dp"
-        android:src="@drawable/img_noti"
+        android:src="@drawable/img_profile"
         android:visibility="gone" />
 
     <ImageView
@@ -51,7 +52,58 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="93dp"
-        android:src="@drawable/img_profile"
+        android:src="@drawable/img_noti"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/intro_view1_dsc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/intro_view1"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="false"
+        android:layout_below="@+id/intro_view1"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="54dp"
+        android:text="Linked Translator System is easy to find the best matched person."
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/colorPrimaryDark"
+        android:textStyle="italic"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/intro_view2_dsc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/intro_view2"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="false"
+        android:layout_below="@+id/intro_view2"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="54dp"
+        android:text="Linked Translator System support to update your profile automatically"
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/colorPrimaryDark"
+        android:textStyle="italic"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/intro_view3_dsc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/intro_view3"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="false"
+        android:layout_below="@+id/intro_view3"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="54dp"
+        android:text="Linked Translator System notify new jobs for you forever"
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/colorPrimaryDark"
+        android:textStyle="italic"
         android:visibility="gone" />
 
 </RelativeLayout>

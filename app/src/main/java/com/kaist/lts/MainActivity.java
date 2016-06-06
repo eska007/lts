@@ -59,7 +59,12 @@ public class MainActivity extends AppCompatActivity {
         mPrefs = getSharedPreferences("lts", MODE_PRIVATE);
 
         FacebookSdk.sdkInitialize(mContext);
-        if (checkFbLoginStatus()) return;
+        setContentView(R.layout.activity_main);
+
+        //Check facebook login status
+        if (checkFbLoginStatus()) {
+            return;
+        }
 
         //Display Intro page at 1st lunch app.
         boolean startStatus = mPrefs.getBoolean("startup", false);
@@ -67,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (!startStatus) {
             AccessManager.startOtherActivity(mContext, AccessManager.INTRO_CLASS_NAME);
+            finish();
         } else {
-            setContentView(R.layout.activity_main);
             facebookLogin();
             getAppHashKey();
         }
