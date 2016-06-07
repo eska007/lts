@@ -9,7 +9,7 @@ import org.json.simple.JSONObject;
  */
 public class ProfileManager {
     static final String TAG = "[LTS][ProfileManager]";
-    static int user_mode;
+    static int user_mode = -1;
 
     public static int getUserMode(ISession cs) {
         // Fill profiles

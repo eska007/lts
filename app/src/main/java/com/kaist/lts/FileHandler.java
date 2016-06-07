@@ -168,7 +168,7 @@ public class FileHandler {
                 .getAuthority());
     }
 
-    public static void createUploadThread(Context context, String filePath, PowerManager.WakeLock wakeLock) {
+    public static void createUploadThread(Context context, String filePath, PowerManager.WakeLock wakeLock, final String fileName) {
         final Context c = context;
         final String fp = filePath;
 
@@ -182,7 +182,7 @@ public class FileHandler {
                     //creating new thread to handle Http Operations
                     // DEBUG
                     // Toast.makeText(c, "Upload File", Toast.LENGTH_SHORT).show();
-                    uploadFile(c, fp);
+                    uploadFile(c, fp, fileName);
                 } catch (OutOfMemoryError e) {
 
                     runOnUiThread(new Runnable() {
@@ -196,7 +196,7 @@ public class FileHandler {
         }, 3000);
     }
 
-    private static int uploadFile(final Context c, final String path) {
+    private static int uploadFile(final Context c, final String path, final String fileName) {
         Log.d(TAG, "uploadFile: " + path);
         HttpURLConnection connection;
         DataOutputStream dataOutputStream;
@@ -211,8 +211,8 @@ public class FileHandler {
         byte[] buffer;
         File selectedFile = new File(path);
 
-        String[] parts = path.split("/");
-        String fileName = parts[parts.length - 1];
+        //String[] parts = path.split("/");
+        //String fileName = parts[parts.length - 1];
 
         if (!selectedFile.isFile()) {
 
@@ -235,10 +235,10 @@ public class FileHandler {
                     connection.setRequestProperty("ENCTYPE", "multipart/form-data");
                     connection.setRequestProperty(
                             "Content-Type", "multipart/form-data;boundary=" + boundary);
-                    int userMode = ProfileManager.getUserMode(AccessManager.getAccessManager().GetSession());
-                    fileName = userMode + "_" + fileName;
-                    Log.d(TAG, "Rename of file: " + fileName);
-                    connection.setRequestProperty("uploaded_file", userMode + fileName);
+                    //int userMode = ProfileManager.getUserMode(AccessManager.getAccessManager().GetSession());
+                    //fileName = userMode + "_" + fileName;
+                    //Log.d(TAG, "Rename of file: " + fileName);
+                    connection.setRequestProperty("uploaded_file", fileName);
                 } else {
                     return 0;
                 }
@@ -293,7 +293,9 @@ public class FileHandler {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(c, "Upload Success", Toast.LENGTH_SHORT);
+                            if (ClientActivity.mHandler != null) {
+                                ClientActivity.mHandler.sendEmptyMessage(ClientActivity.UPLOADED);
+                            }
                         }
                     });
                 }
