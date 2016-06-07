@@ -131,7 +131,9 @@ public class Registration extends AppCompatActivity {
 
     private JSONObject generateJson(String id, String password, String name, String surname,
                                     String phone, String email, String country, String address) {
+
         JSONObject profiles = new JSONObject();
+        profiles.put("user_mode", ProfileManager.user_mode);
         profiles.put("id", id);
         profiles.put("password", password);
         profiles.put("family_name", name);

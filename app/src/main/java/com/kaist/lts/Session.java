@@ -108,7 +108,7 @@ public class Session implements ISession{
 
             // Send data
             OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
-            Log.d(TAG, "json:" + data.toString());
+            Log.d(TAG, "json: " + data.toString());
             osw.write(data.toString());
             osw.flush();
             osw.close();
@@ -118,7 +118,7 @@ public class Session implements ISession{
             String line;
             String result = new String();
             while((line = rd.readLine()) != null){
-                Log.d(TAG, "return : " + line);
+                Log.d(TAG, "return: " + line);
                 result += line;
             }
             return ConvertResult(result);

@@ -64,8 +64,10 @@ public class ClientActivity extends AppCompatActivity {
     static final int PAGE_NUM_REQUEST = 2;
     static final int PAGE_NUM_PROFILE = 3;
     static final int PICK_FILE_REQUEST = 1;
-    static public int TIME_OUT = 0;
 
+    static public int TIME_OUT = 0;
+    static public int UPLOADED = 1;
+    static public Handler mHandler;
     static Context mContext;
     static FileHandler fh;
     static Spinner type;
@@ -74,9 +76,7 @@ public class ClientActivity extends AppCompatActivity {
     static Spinner lang;
     static String dueDate;
     static String selectedFilePath;
-
     static private PowerManager.WakeLock wakeLock;
-    static private Handler mHandler;
     static private ProgressDialog dialog;
 
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
@@ -147,16 +147,35 @@ public class ClientActivity extends AppCompatActivity {
                         req.put("due_date", dueDate);
                         String[] truncatedFilePath = selectedFilePath.split("/");
                         String fileName = truncatedFilePath[truncatedFilePath.length - 1];
-                        Log.d(TAG, "file name: " + fileName);
-                        req.put("source_doc_path", fileName);
+
+                        //Get user mode from server
+                        if (ProfileManager.user_mode == -1) {
+                            ProfileManager.getUserMode(Session.GetInstance());
+                        }
+
+                        if (ProfileManager.user_mode == ProfileManager.USER_MODE.REQUESTER) {
+                            fileName = "1_" + fileName;
+                            req.put("source_doc_path", fileName);
+                        } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.TRANSLATOR) {
+                            fileName = "2_" + fileName;
+                            req.put("translated_doc_path", fileName);
+                        } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.REVIEWER) {
+                            fileName = "3_" + fileName;
+                            req.put("reviewed_doc_path", fileName);
+                        } else {
+                            req.put("source_doc_path", fileName);
+                        }
+
+                        Log.d(TAG, "File rename: " + fileName);
 
                         int request_id = RequestManager.addNewRequest(Session.GetInstance(), req);
                         if (request_id <= 0) {
                             Log.e(TAG, "Fail to Add new request, id:"+Integer.toString(request_id));
                             return;
                         }
-                        //FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
-                        mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
+
+                        FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock, fileName);
+                        mHandler.sendEmptyMessageDelayed(TIME_OUT, 60 * 1000); //1min
                         new Notifier(Notifier.Command.LIST_OF_CANDIDATES, request_id, mContext); // To get notification of candidate reviewers.
                     }
                 }
@@ -315,18 +334,20 @@ public class ClientActivity extends AppCompatActivity {
                     new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
+
         //Create Handler
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 //super.handleMessage(msg);
-                if (msg.what == TIME_OUT) {
+                if (msg.what == TIME_OUT || msg.what == UPLOADED) {
                     if (dialog != null) {
                         dialog.dismiss();
                     }
                 }
             }
         };
+
         //My Info
         setContentView(R.layout.activity_client);
         setTitle(R.string.title_activity_client);

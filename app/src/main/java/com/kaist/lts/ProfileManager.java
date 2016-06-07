@@ -9,12 +9,7 @@ import org.json.simple.JSONObject;
  */
 public class ProfileManager {
     static final String TAG = "[LTS][ProfileManager]";
-
-    public class USER_MODE {
-        public static final int REQUESTER = 0;
-        public static final int TRANSLATOR = 1;
-        public static final int REVIEWER = 2;
-    }
+    static int user_mode = -1;
 
     public static int getUserMode(ISession cs) {
         // Fill profiles
@@ -24,15 +19,23 @@ public class ProfileManager {
         // get session, and register profiles
         JSONObject output = new JSONObject();
         ISession.RetVal ret = cs.SendRequest(profiles, output);
+
         Log.d(TAG, "getUserMode result : " + output.toString());
         if (ret != ISession.RetVal.RET_OK)
             return -1;
+
         String mode = (String) output.get("user_mode");
-        switch(Integer.parseInt(mode)) {
-            case 0: return USER_MODE.REQUESTER;
-            case 1: return USER_MODE.TRANSLATOR;
-            case 2: return USER_MODE.REVIEWER;
-            default: break;
+
+        user_mode = Integer.parseInt(mode);
+        switch (user_mode) {
+            case 0:
+                return USER_MODE.REQUESTER;
+            case 1:
+                return USER_MODE.TRANSLATOR;
+            case 2:
+                return USER_MODE.REVIEWER;
+            default:
+                break;
         }
         return -1;
     }
@@ -64,5 +67,11 @@ public class ProfileManager {
 
         Log.d(TAG, "GET_MEMBER_INFO result : " + ret + ", output : " + output.toString());
         return output;
+    }
+
+    public class USER_MODE {
+        public static final int REQUESTER = 0;
+        public static final int TRANSLATOR = 1;
+        public static final int REVIEWER = 2;
     }
 }

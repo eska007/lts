@@ -156,7 +156,9 @@
             <EditText
                 android:id="@+id/et_email"
                 android:layout_width="300dp"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="textEmailAddress" />
 
         </LinearLayout>
 
@@ -173,7 +175,9 @@
             <EditText
                 android:id="@+id/et_phone"
                 android:layout_width="300dp"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="phone" />
 
         </LinearLayout>
 
