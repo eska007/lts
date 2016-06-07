@@ -211,8 +211,8 @@ public class FileHandler {
         byte[] buffer;
         File selectedFile = new File(path);
 
-        String[] parts = path.split("/");
-        final String fileName = parts[parts.length - 1];
+        //String[] parts = path.split("/");
+        //final String fileName = parts[parts.length - 1];
 
         if (!selectedFile.isFile()) {
 

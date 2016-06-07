@@ -76,6 +76,24 @@ public class SelectRegistration extends AppCompatActivity implements View.OnClic
 
     @Override
     public void onClick(View v) {
+
+        switch (v.getId()) {
+            case R.id.btn_customer:
+                Log.d(TAG, "user mode: customer");
+                ProfileManager.user_mode = ProfileManager.USER_MODE.REQUESTER;
+                break;
+            case R.id.btn_translator:
+                Log.d(TAG, "user mode: translator");
+                ProfileManager.user_mode = ProfileManager.USER_MODE.TRANSLATOR;
+                break;
+            case R.id.btn_reviewer:
+                Log.d(TAG, "user mode: reviewer");
+                ProfileManager.user_mode = ProfileManager.USER_MODE.REVIEWER;
+                break;
+            default:
+                break;
+        }
+        //Start registration activity
         AccessManager.startOtherActivity(mContext, AccessManager.REGIST_CLASS_NAME);
     }
 }
