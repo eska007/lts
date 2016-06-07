@@ -152,7 +152,8 @@ public class ClientActivity extends AppCompatActivity {
                             Log.e(TAG, "Fail to Add new request, id:"+Integer.toString(request_id));
                             return;
                         }
-                        //FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
+
+                        FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock);
                         mHandler.sendEmptyMessageDelayed(TIME_OUT, 1000);
                         new Notifier(Notifier.Command.LIST_OF_CANDIDATES, request_id, mContext); // To get notification of candidate reviewers.
                     }

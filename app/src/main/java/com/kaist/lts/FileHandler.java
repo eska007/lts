@@ -211,8 +211,8 @@ public class FileHandler {
         byte[] buffer;
         File selectedFile = new File(path);
 
-        //String[] parts = path.split("/");
-        //final String fileName = parts[parts.length - 1];
+        String[] parts = path.split("/");
+        String fileName = parts[parts.length - 1];
 
         if (!selectedFile.isFile()) {
 
@@ -235,23 +235,13 @@ public class FileHandler {
                     connection.setRequestProperty("ENCTYPE", "multipart/form-data");
                     connection.setRequestProperty(
                             "Content-Type", "multipart/form-data;boundary=" + boundary);
-                    connection.setRequestProperty("uploaded_file", path);
+                    int userMode = ProfileManager.getUserMode(AccessManager.getAccessManager().GetSession());
+                    fileName = userMode + "_" + fileName;
+                    Log.d(TAG, "Rename of file: " + fileName);
+                    connection.setRequestProperty("uploaded_file", userMode + fileName);
                 } else {
                     return 0;
                 }
-                /*URL url = new URL(SERVER_URL);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);//Allow Inputs
-                connection.setDoOutput(true);//Allow Outputs
-                connection.setUseCaches(false);//Don't use a cached Copy
-                connection.setRequestMethod("POST");
-
-                connection.setRequestProperty("Connection", "Keep-Alive");
-                connection.setRequestProperty("ENCTYPE", "multipart/form-data");
-                connection.setRequestProperty(
-                        "Content-Type", "multipart/form-data;boundary=" + boundary);
-                connection.setRequestProperty("uploaded_file", path);
-                */
 
                 //creating new dataoutputstream
                 dataOutputStream = new DataOutputStream(connection.getOutputStream());
@@ -259,7 +249,7 @@ public class FileHandler {
                 //writing bytes to data outputstream
                 dataOutputStream.writeBytes(twoHyphens + boundary + lineEnd);
                 dataOutputStream.writeBytes("Content-Disposition: form-data; name=\"uploaded_file\";filename=\""
-                        + path + "\"" + lineEnd);
+                        + fileName + "\"" + lineEnd);
 
                 dataOutputStream.writeBytes(lineEnd);
 
