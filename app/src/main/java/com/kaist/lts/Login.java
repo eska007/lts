@@ -1,6 +1,5 @@
 package com.kaist.lts;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -144,11 +143,16 @@ public class Login extends AppCompatActivity {
                 case RESULT_LOGIN:
                     if (msg.arg1 == SUCCESS) {
                         Log.d(TAG, "Login Success");
-                        startActivity(new Intent(getApplicationContext(), ClientActivity.class));
+                        Login.status = true;
+                        MainActivity.setSharedPref("registration", true);
+
+                        //Start client Activity
+                        AccessManager.startOtherActivity(getApplicationContext(), AccessManager.CLIENT_CLASS_NAME);
                         finish();
                     } else {
                         Log.d(TAG, "Login Failed");
-                        // TODO: Show failed popup
+                        Login.status = false;
+                        MainActivity.setSharedPref("registration", false);
                     }
                     break;
 

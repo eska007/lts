@@ -50,6 +50,26 @@ public class MainActivity extends AppCompatActivity {
     public static void callFacebookLogout() {
         LoginManager mLoginManager = LoginManager.getInstance();
         mLoginManager.logOut();
+
+        Login.status = false;
+    }
+
+    static public void setSharedPref(String key, boolean ret) {
+        if (mPrefs == null)
+            return;
+
+        SharedPreferences.Editor prefEditor = mPrefs.edit();
+        prefEditor.putBoolean(key, ret);
+        prefEditor.apply();
+    }
+
+    static public void setSharedPref(String key, String val) {
+        if (mPrefs == null)
+            return;
+
+        SharedPreferences.Editor prefEditor = mPrefs.edit();
+        prefEditor.putString(key, val);
+        prefEditor.apply();
     }
 
     @Override
@@ -166,13 +186,14 @@ public class MainActivity extends AppCompatActivity {
         profile = Profile.getCurrentProfile();
         profileTracker.startTracking();
 
-        if (profile != null) {
+        if (accessToken != null && profile != null) {
             Login.id = profile.getId();
             Login.given_name = profile.getLastName();
             Login.sur_name = profile.getFirstName();
 
             handler = new MessageHandler();
-            Login.status = Login.tryTocheckID(Login.id, handler);
+            Login.status = true;
+            Login.reg_id = Login.tryTocheckID(Login.id, handler);
 
             Log.d(TAG, "Facebook ID: " + Login.id + ", Name: " + Login.given_name + Login.sur_name);
             return true;
@@ -185,6 +206,13 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onResume");
        boolean ret = getFacebookTracker();
         Log.d(TAG, "Login Status: " + Login.status + ", Registration: " + mPrefs.getBoolean("registration", false));
+
+        //1. 페북 & 직접 로그 아웃 상태
+        if (!Login.status) {
+            super.onResume();
+        }
+
+        //2. 페북 로그인 후, 가입 전 종료
         if (ret && !mPrefs.getBoolean("registration", false)) {
             AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
         } else {
@@ -301,13 +329,17 @@ public class MainActivity extends AppCompatActivity {
                 case Login.RESULT_CHECK_ID:
                     if (msg.arg1 == Login.SUCCESS) {
                         Log.d(TAG, "checkID Success");
-                        //Login.reg_id = true;
-                        Login.status = true;
+                        Login.reg_id = true;
+                        //Login.status = true;
+                        setSharedPref("registration", true);
+
                         AccessManager.startOtherActivity(mContext, AccessManager.CLIENT_CLASS_NAME);
                     } else {
                         Log.d(TAG, "checkID Failed");
-                        //Login.reg_id = false;
-                        Login.status = false;
+                        Login.reg_id = false;
+                        //Login.status = false;
+                        setSharedPref("registration", false);
+
                         AccessManager.startOtherActivity(mContext, AccessManager.SELREG_CLASS_NAME);
                     }
                     finish();
