@@ -78,6 +78,7 @@ public class ClientActivity extends AppCompatActivity {
     static private PowerManager.WakeLock wakeLock;
     static private Handler mHandler;
     static private ProgressDialog dialog;
+
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
      * The {@link PagerAdapter} that will provide
@@ -98,6 +99,8 @@ public class ClientActivity extends AppCompatActivity {
      */
 
     private GoogleApiClient client;
+
+
 
     static private void showFileChooser(Activity activity) {
         Intent intent = new Intent();
@@ -208,7 +211,8 @@ public class ClientActivity extends AppCompatActivity {
         payText.setVisibility(View.VISIBLE);
         dateBt.setVisibility(View.VISIBLE);
     }
-    static private void showRequestListForRequester(Activity activity, View view) {
+
+    static private void showRequestList(Activity activity, View view, int user_mode) {
         final Activity ac = activity;
         Log.d(TAG, "Show Request List");
 
@@ -226,91 +230,28 @@ public class ClientActivity extends AppCompatActivity {
             return;
         }
 
-        // Get my all requests list (Include work-done, working, and not-applied requests)
-        String all_worklist = (String)myprofile.get("worklist");
-        Log.d(TAG, "all_worklist: " + all_worklist);
-
-        // Get each request information and  Fill the Group/Child data of Expandable ListView
-        ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
-        ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
-        StringTokenizer st = new StringTokenizer(all_worklist, ";"); // Parse new request list (ex. all_worklist = ";13;52;1;32")
-
-        while (st.hasMoreTokens()) {
-            String id_str = st.nextToken();
-            int id = Integer.parseInt(id_str);
-            Log.d(TAG, "id: " + id_str);
-
-            JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
-
-            Map<String, String> curr = new HashMap<String, String>();
-            curr.put("ID", id_str);
-            curr.put("SUBJECT", (String) request.get("subject"));
-            mGroupList.add(curr);
-
-            ArrayList<Map<String, String>> children = new ArrayList<Map<String, String>>();
-            Iterator<Object> itr = request.keySet().iterator();
-            while (itr.hasNext()) {
-                Object key = itr.next();
-                String val = (String) request.get(key);
-                if (val.equals("id") || val.equals("subject"))
-                    continue;
-                Map<String, String> child = new HashMap<String, String>();
-                child.put("ITEM", (String) key);
-                child.put("DATA", val);
-                children.add(child);
-            }
-            mChildList.add(children);
-        }
-
-        final ExpandableListView mExpListView = (ExpandableListView) view.findViewById(R.id.request_list_view);
-        mExpListView.setAdapter(new SimpleExpandableListAdapter(
-                        ac.getApplicationContext(),
-                        mGroupList,
-                        R.layout.request_list_row,
-                        new String[]{"ID", "SUBJECT"},
-                        new int[]{R.id.req_list_item_id, R.id.req_list_item_desc},
-                        mChildList,
-                        R.layout.detail_request_list_row,
-                        new String[]{"ITEM", "DATA"},
-                        new int[]{R.id.detail_req_list_item, R.id.detail_req_list_data}
-                )
-        );
-        Log.d(TAG, "SetAdaptor");
-        mExpListView.setVisibility(View.VISIBLE);
-    }
-
-    static private void showRequestListForWorker(Activity activity, View view) {
-        final Activity ac = activity;
-        Log.d(TAG, "Show Request List");
-
-        // Show title
-        TextView title1 = (TextView) view.findViewById(R.id.frag_exp_list_view_title1);
-        TextView title2 = (TextView) view.findViewById(R.id.frag_exp_list_view_title2);
-        title1.setVisibility(View.VISIBLE);
-        title2.setVisibility(View.VISIBLE);
-
-        // Get my profiles
-        JSONObject myprofile = null;
-        myprofile = ProfileManager.getMyInfo(Session.GetInstance());
-        if (myprofile == null) {
-            Log.e(TAG, "No response from ProfileManager.getMyInfo");
-            return;
-        }
-
-        // Get my all requests list (Include work-done, working, and not-applied requests)
-        String all_requests_list = (String)myprofile.get("new_request");
-        Log.d(TAG, "all_requests_list: " + all_requests_list);
+        // Get my all requests list (If the user is Translator or Reviewr, Include work-done, working, and not-applied requests)
+        String target_column_name;
+        if (user_mode == ProfileManager.USER_MODE.REQUESTER)
+            target_column_name = "worklist";
+        else
+            target_column_name = "new_request";
+        String work_list = (String)myprofile.get(target_column_name);
+        Log.d(TAG, target_column_name + ": " + work_list);
 
         // Get not-applied requests (
-        String applied_requests_list= (String)myprofile.get("_applied_request");
-        Set<String> applied_requests__set = new HashSet<String>();
-        Collections.addAll(applied_requests__set, applied_requests_list.split(";"));
-        Log.d(TAG, "_applied_request: " + applied_requests_list);
+        Set<String> applied_requests_set = null;
+        if (user_mode != ProfileManager.USER_MODE.REQUESTER) {
+            String applied_requests_list=(String) myprofile.get("_applied_request");
+            applied_requests_set = new HashSet<String>();
+            Collections.addAll(applied_requests_set, applied_requests_list.split(";"));
+            Log.d(TAG, "_applied_request: " + applied_requests_list);
+        }
 
         // Get each request information and  Fill the Group/Child data of Expandable ListView
         ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
         ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
-        StringTokenizer st = new StringTokenizer(all_requests_list, ";"); // Parse new request list (ex. all_requests_list = ";13;52;1;32")
+        StringTokenizer st = new StringTokenizer(work_list, ";"); // Parse new request list (ex. work_list = ";13;52;1;32")
 
         while (st.hasMoreTokens()) {
             String id_str = st.nextToken();
@@ -322,10 +263,12 @@ public class ClientActivity extends AppCompatActivity {
             Map<String, String> curr = new HashMap<String, String>();
             curr.put("ID", id_str);
             curr.put("SUBJECT", (String) request.get("subject"));
-            if (applied_requests__set.contains(id_str))
-                curr.put("IS_APPLIED", "TRUE");
-            else
-                curr.put("IS_APPLIED", "FALSE");
+            if (applied_requests_set != null) {
+                if (applied_requests_set.contains(id_str))
+                    curr.put("IS_APPLIED", "TRUE");
+                else
+                    curr.put("IS_APPLIED", "FALSE");
+            }
             mGroupList.add(curr);
 
             ArrayList<Map<String, String>> children = new ArrayList<Map<String, String>>();
@@ -344,7 +287,7 @@ public class ClientActivity extends AppCompatActivity {
         }
 
         final ExpandableListView mExpListView = (ExpandableListView) view.findViewById(R.id.request_list_view);
-        mExpListView.setAdapter(new expandableListAdapterForWorker(
+        mExpListView.setAdapter(new customExpandableListAdapter(
                 ac.getApplicationContext(),
                 mGroupList,
                 R.layout.request_list_row,
@@ -354,8 +297,7 @@ public class ClientActivity extends AppCompatActivity {
                 R.layout.detail_request_list_row,
                 new String[]{"ITEM", "DATA"},
                 new int[]{R.id.detail_req_list_item, R.id.detail_req_list_data},
-                mExpListView
-            )
+                mExpListView, user_mode)
         );
         Log.d(TAG, "SetAdaptor");
         mExpListView.setVisibility(View.VISIBLE);
@@ -551,32 +493,41 @@ public class ClientActivity extends AppCompatActivity {
         client.disconnect();
     }
 
-    public static class expandableListAdapterForWorker extends SimpleExpandableListAdapter {
+    public static class customExpandableListAdapter extends SimpleExpandableListAdapter {
         final private ExpandableListView mExpListView;
+        final private int mUserMode;
+        final List<? extends List<? extends Map<String, ?>>> mChildData;
 
-        public expandableListAdapterForWorker(Context context,
+
+        public customExpandableListAdapter(Context context,
                                     List<? extends Map<String, ?>> groupData, int groupLayout,
                                     String[] groupFrom, int[] groupTo,
                                     List<? extends List<? extends Map<String, ?>>> childData,
-                                    int childLayout, String[] childFrom, int[] childTo, ExpandableListView expListView) {
+                                    int childLayout, String[] childFrom, int[] childTo,
+                                    ExpandableListView expListView, int userMode) {
             super(context, groupData, groupLayout, groupLayout, groupFrom, groupTo, childData,
                     childLayout, childLayout, childFrom, childTo);
+            mChildData = childData;
             mExpListView = expListView;
+            mUserMode = userMode;
         }
 
         @Override
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
                                  ViewGroup parent) {
             View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
+            if (mUserMode == ProfileManager.USER_MODE.REQUESTER)
+                return view;
 
             // Show Apply Button If it's new requests (Not applied yet)
+            // Only for Translator and Reviewer
             Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
             final Button apply_btn = (Button) view.findViewById(R.id.request_apply_btn);
             if (groupdata.get("IS_APPLIED").equals("TRUE")) {
                 Log.d(TAG, "IS_APPLIED = TRUE");
-                disableButton(apply_btn);
+                disableButton(apply_btn, "Applied");
             } else {
-                enableButton(apply_btn);
+                enableButton(apply_btn, "Apply");
                 apply_btn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -585,33 +536,95 @@ public class ClientActivity extends AppCompatActivity {
                         if (!RequestManager.bid(Session.GetInstance(), request_id))
                             Log.d(TAG, "Failed to BID, req_id:" + Integer.toString(request_id));
                         //mExpListView.invalidateViews();
-                        disableButton(apply_btn);
+                        disableButton(apply_btn, "Applied");
                         ExpandableListAdapter ad = mExpListView.getExpandableListAdapter();
                         Map<String, String> groupdata = (Map<String, String>) ad.getGroup((int) view.getTag(R.id.request_apply_btn + 1));
                         groupdata.put("IS_APPLIED", "TRUE");
                     }
                 });
             }
-                    /*Log.d(TAG, "getGroupView  pos"+Integer.toString(groupPosition)+
-                            ", APPLIED:"+groupdata.get("IS_APPLIED")+", ID:"+groupdata.get("ID"));*/
+            /*Log.d(TAG, "getGroupView  pos"+Integer.toString(groupPosition)+
+                    ", APPLIED:"+groupdata.get("IS_APPLIED")+", ID:"+groupdata.get("ID"));*/
             apply_btn.setVisibility(View.VISIBLE);
             apply_btn.setTag(R.id.request_apply_btn, groupdata.get("ID"));
             apply_btn.setTag(R.id.request_apply_btn + 1, groupPosition);
             return view;
         }
 
-        private void disableButton(final Button apply_btn) {
-            apply_btn.setText("Applied");
-            apply_btn.setOnClickListener(null);
-            apply_btn.setClickable(false);
-            apply_btn.setBackgroundColor(0xFF9AF0E5);
+        @Override
+        public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
+                                 View convertView, ViewGroup parent) {
+            View view = super.getChildView(groupPosition, childPosition, isLastChild, convertView, parent);
+            if (mUserMode == ProfileManager.USER_MODE.REVIEWER)
+                return view;
+
+            // Show Select Button If it's candidates list
+            // Only for Requester and Translator
+            Map<String, String> childdata = (Map<String, String>) super.getChild(groupPosition, childPosition);
+            final Button select_btn = (Button) view.findViewById(R.id.select_worker_btn);
+            String target, target2;
+            if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
+                target = "translator_candidate_list";
+                target2 = "translator_id";
+            }else {// if current user is translator
+                target = "reviewer_candidate_list";
+                target2 = "reviewer_id";
+            }
+
+            if (false == childdata.get("ITEM").equals(target) || childdata.get("DATA").isEmpty()) {
+                select_btn.setVisibility(View.INVISIBLE);
+            } else {
+                // If this group has worker_id , disable Button;
+                List<Map<String, String>> children = (List<Map<String, String>>)mChildData.get(groupPosition);
+                Iterator<Map<String, String>> itr = children.iterator();
+                boolean isSelected = false;
+                while (itr.hasNext()) {
+                    Map<String, String> key = itr.next();
+                    if (key.get("ITEM").equals(target2)) {
+                        if (key.get("DATA").isEmpty() == false)
+                            isSelected = true;
+                        break;
+                    }
+                }
+
+                if (isSelected) {
+                    disableButton(select_btn, "Selected");
+                } else {
+                    enableButton(select_btn, "Select Worker");
+                    ExpandableListAdapter ad = mExpListView.getExpandableListAdapter();
+                    Map<String, String> groupdata = (Map<String, String>) ad.getGroup(groupPosition);
+                    select_btn.setTag(groupdata.get("ID")); // Request id
+                    select_btn.setTag(R.id.select_worker_btn, childdata.get("DATA")); // Candidates list
+                    select_btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Log.d(TAG, "select btn onClick, Show Diaglog to select worker");
+                            // Show candidates list on Dialog  , String candidates = view.getTag();
+                            Intent intent = new Intent();
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.putExtra("candidates_list", (String)view.getTag(R.id.select_worker_btn));
+                            intent.putExtra("request_id", (String)view.getTag());
+                            intent.setClassName(AccessManager.LTS_PACKAGE_NAME, AccessManager.SELWKR_CLASS_NAME);
+                            mContext.startActivity(intent);
+                        }
+                    });
+                    select_btn.setVisibility(View.VISIBLE);
+                }
+            }
+            return view;
         }
 
-        private void enableButton(final Button apply_btn) {
-            apply_btn.setText("Apply");
-            apply_btn.setBackgroundColor(0xFF54C7B8);
-            apply_btn.setClickable(true);
+        private void disableButton(final Button btn, String text) {
+            btn.setText(text);
+            btn.setOnClickListener(null);
+            btn.setClickable(false);
+            btn.setBackgroundColor(0xFF9AF0E5);
+        }
 
+        private void enableButton(final Button btn, String text) {
+            btn.setText(text);
+            btn.setBackgroundColor(0xFF54C7B8);
+            btn.setClickable(true);
         }
     }
 
@@ -695,10 +708,7 @@ public class ClientActivity extends AppCompatActivity {
             int user_mode = ProfileManager.getUserMode(Session.GetInstance());
             switch (pageViewNumber) {
                 case PAGE_NUM_NOTIFY:
-                    if (user_mode == ProfileManager.USER_MODE.REQUESTER)
-                        showRequestListForRequester(getActivity(), rootView);
-                    else
-                        showRequestListForWorker(getActivity(), rootView);
+                    showRequestList(getActivity(), rootView, user_mode);
                     break;
                 case PAGE_NUM_REQUEST:
                     showRequestItems(getActivity(), rootView);
