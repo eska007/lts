@@ -8,7 +8,7 @@
         android:layout_height="40dp"
         android:id="@+id/req_list_item_id"
         android:text="1"
-        android:textSize="30dp"
+        android:textSize="20dp"
         android:background="#d9efff"
         android:layout_margin="1dp"
         android:gravity="center_vertical|center_horizontal"
@@ -17,9 +17,10 @@
         android:layout_width="230dp"
         android:layout_height="40dp"
         android:layout_toRightOf="@id/req_list_item_id"
+        android:layout_gravity="center_vertical"
         android:id="@+id/req_list_item_desc"
         android:text="sub Text"
-        android:textSize="30dp"
+        android:textSize="20dp"
         android:layout_margin="1dp"
         android:background="#d9efff"
         android:paddingLeft="5dp"
@@ -28,13 +29,15 @@
     <Button
         android:id="@+id/request_apply_btn"
         style="?android:attr/buttonStyleSmall"
-        android:layout_width="match_parent"
+        android:layout_width="80dp"
         android:layout_height="40dp"
-        android:layout_toRightOf="@id/req_list_item_desc"
+        android:layout_margin="1dp"
         android:layout_gravity="center_vertical"
+        android:layout_alignParentRight="true"
         android:focusable="false"
         android:visibility="gone"
         android:text="Apply"
         android:textSize="15dp"
         android:textColor="#000000" />
+    <!--android:layout_toRightOf="@id/req_list_item_desc"-->
 </LinearLayout>

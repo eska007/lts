@@ -45,13 +45,13 @@ public class Notifier {
                         id = (String) output.get("id");
                     else
                         id = output.toString();
-                    if (Integer.parseInt(id) != request_id)
-                        Log.e(TAG, "ERROR!! given request id: "+id +",  expected id: " + Integer.toString(request_id));
+
+                    Log.e(TAG, "New Request is delivered: "+id);
                     Bundle bd = new Bundle();
                     bd.putString("request_id", id);
                     builder.setExtras(bd);
-                    builder.setTicker("New request");
-                    builder.setContentTitle("New request id: " + id);
+                    builder.setTicker("신규 의뢰가 도착했습니다. ID:" + id);
+                    builder.setContentTitle("신규 의뢰가 도착했습니다. ID:" + id);
                     return true;
                 }
 
@@ -70,8 +70,14 @@ public class Notifier {
                     bd.putInt("request_id", request_id);
                     builder.setExtras(bd);
                     builder.setTicker("List of candidates");
-                    builder.setContentText("Request id: " + request_id);
-                    builder.setContentTitle(key + " : " + candidates.replace(';', ','));
+                    builder.setContentText("지원자 리스트 : " + candidates.replace(';', ','));
+                    if (key.equals("translator_candidate_list")) {
+                        builder.setTicker("의뢰ID(" + request_id + ") 번역지원자 모집완료");
+                        builder.setContentTitle("의뢰ID(" + request_id + ") 번역지원자 모집완료");
+                    }else {
+                        builder.setTicker("의뢰ID(" + request_id + ") 감수지원자 모집완료");
+                        builder.setContentTitle("의뢰ID(" + request_id + ") 감수지원자 모집완료");
+                    }
                     return true;
                 }
 
@@ -89,8 +95,14 @@ public class Notifier {
                     bd.putString(key, employee);
                     bd.putInt("request_id", request_id);
                     builder.setExtras(bd);
-                    builder.setContentTitle(key+": " + employee);
-                    builder.setContentText("Request id: " + request_id);
+                    if (key.equals("translator_id")) {
+                        builder.setTicker("의뢰ID(" + request_id + ") 번역가 채택 완료");
+                        builder.setContentTitle("의뢰ID(" + request_id + ") 번역가 채택 완료");
+                    }else {
+                        builder.setTicker("의뢰ID(" + request_id + ") 감수자 채택 완료");
+                        builder.setContentTitle("의뢰ID(" + request_id + ") 감수자 채택 완료");
+                    }
+                    builder.setContentText("채택된 지원자ID: " + employee);
                     return true;
                 }
 
@@ -152,7 +164,8 @@ public class Notifier {
                                 .setAutoCancel(true);
                         if (true == mCmd.parseOutput(mRequestID, output, builder)) {
                             nm.notify(0, builder.build());
-                            break;
+                            if (mCmd != Command.NEW_REQUEST) // NEW_REQUEST SHOULD BE CHECKED FOREVER
+                                break;
                         }
                     }
 

@@ -36,6 +36,7 @@ import android.widget.DatePicker;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -634,8 +635,12 @@ public class ClientActivity extends AppCompatActivity {
         public View getGroupView(int groupPosition, boolean isExpanded, View convertView,
                                  ViewGroup parent) {
             View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
-            if (mUserMode == ProfileManager.USER_MODE.REQUESTER)
+            if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
+                TextView tview = (TextView)view.findViewById(R.id.req_list_item_desc);
+                tview.setLayoutParams(new LinearLayout.LayoutParams
+                        (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
                 return view;
+            }
 
             // Show Apply Button If it's new requests (Not applied yet)
             // Only for Translator and Reviewer
@@ -653,11 +658,11 @@ public class ClientActivity extends AppCompatActivity {
                         int request_id = Integer.parseInt((String) view.getTag(R.id.request_apply_btn));
                         if (!RequestManager.bid(Session.GetInstance(), request_id))
                             Log.d(TAG, "Failed to BID, req_id:" + Integer.toString(request_id));
-                        //mExpListView.invalidateViews();
                         disableButton(apply_btn, "Applied");
                         ExpandableListAdapter ad = mExpListView.getExpandableListAdapter();
                         Map<String, String> groupdata = (Map<String, String>) ad.getGroup((int) view.getTag(R.id.request_apply_btn + 1));
                         groupdata.put("IS_APPLIED", "TRUE");
+                        new Notifier(Notifier.Command.RESULT_OF_BID, request_id, mContext);
                     }
                 });
             }
