@@ -74,11 +74,15 @@ public class ClientActivity extends AppCompatActivity {
     static Spinner level;
     static Spinner payment;
     static Spinner lang;
+    static Spinner file;
     static String dueDate;
     static String selectedFilePath;
     static private PowerManager.WakeLock wakeLock;
     static private ProgressDialog dialog;
-
+    static private HashMap<String, String> requesterDownloadableFilesMap
+            = new HashMap<String, String>();
+    static private HashMap<String, String> workerDownloadableFilesMap
+            = new HashMap<String, String>();
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
      * The {@link PagerAdapter} that will provide
@@ -100,8 +104,6 @@ public class ClientActivity extends AppCompatActivity {
 
     private GoogleApiClient client;
 
-
-
     static private void showFileChooser(Activity activity) {
         Intent intent = new Intent();
         //sets the select file to all types of files
@@ -112,7 +114,7 @@ public class ClientActivity extends AppCompatActivity {
         activity.startActivityForResult(Intent.createChooser(intent, "Choose File to Upload.."), PICK_FILE_REQUEST);
     }
 
-    private static void createUploadItems(View view, final Activity ac) {
+    static private void createUploadItems(View view, final Activity ac) {
         Log.d(TAG, "Show upload items");
         ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
         if (attachIcon != null) {
@@ -176,6 +178,7 @@ public class ClientActivity extends AppCompatActivity {
 
                         FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock, fileName);
                         mHandler.sendEmptyMessageDelayed(TIME_OUT, 60 * 1000); //1min
+
                         new Notifier(Notifier.Command.LIST_OF_CANDIDATES, request_id, mContext); // To get notification of candidate reviewers.
                     }
                 }
@@ -184,8 +187,6 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     private static void createSpinners(View view) {
-        //Display all the view of new request
-        displayRequestItems(view);
 
         type = (Spinner) view.findViewById(R.id.spinner_type);
         type.setVisibility(View.VISIBLE);
@@ -212,6 +213,27 @@ public class ClientActivity extends AppCompatActivity {
         ArrayAdapter adapter4 = ArrayAdapter.createFromResource(mContext, R.array.lang, android.R.layout.simple_spinner_item);
         adapter4.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         lang.setAdapter(adapter4);
+
+        if (ProfileManager.user_mode == -1) {
+            ProfileManager.getUserMode(Session.GetInstance());
+        }
+
+        HashMap<String, String> downloadFilesMap = getDownloadableFilesMap(ProfileManager.user_mode);
+
+        if (downloadFilesMap != null) {
+            Log.d(TAG, "Map size: " + downloadFilesMap.size());
+            file = (Spinner) view.findViewById(R.id.spinner_file);
+            file.setVisibility(View.VISIBLE);
+
+            //ArrayAdapter<String> adapter5
+            //        = new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_spinner_item);
+            ArrayAdapter<HashMap<String, String>> adapter5
+                    = new ArrayAdapter<HashMap<String, String>>(view.getContext(), android.R.layout.simple_spinner_item);
+
+            adapter5.add(downloadFilesMap);
+            adapter5.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            file.setAdapter(adapter5);
+        }
     }
 
     private static void displayRequestItems(View view) {
@@ -220,14 +242,16 @@ public class ClientActivity extends AppCompatActivity {
         TextView typeText = (TextView) view.findViewById(R.id.type);
         TextView levelText = (TextView) view.findViewById(R.id.level);
         TextView payText = (TextView) view.findViewById(R.id.pay);
+        TextView fileText = (TextView) view.findViewById(R.id.files);
 
-        Button dateBt = (Button) view.findViewById(R.id.end_date);
+        Button dateBt = (Button) view.findViewById(R.id.due_date);
 
         newText.setVisibility(View.VISIBLE);
         langTest.setVisibility(View.VISIBLE);
         typeText.setVisibility(View.VISIBLE);
         levelText.setVisibility(View.VISIBLE);
         payText.setVisibility(View.VISIBLE);
+        fileText.setVisibility(View.VISIBLE);
         dateBt.setVisibility(View.VISIBLE);
     }
 
@@ -282,6 +306,9 @@ public class ClientActivity extends AppCompatActivity {
             Map<String, String> curr = new HashMap<String, String>();
             curr.put("ID", id_str);
             curr.put("SUBJECT", (String) request.get("subject"));
+            String file = (String) request.get("final_doc_path");
+
+            setDownloadableMap(request, file);
             if (applied_requests_set != null) {
                 if (applied_requests_set.contains(id_str))
                     curr.put("IS_APPLIED", "TRUE");
@@ -325,6 +352,71 @@ public class ClientActivity extends AppCompatActivity {
         );
         Log.d(TAG, "SetAdaptor");
         mExpListView.setVisibility(View.VISIBLE);
+    }
+
+    static public HashMap<String, String> getDownloadableFilesMap(int mode) {
+        // Get my profiles
+        JSONObject myprofile = null;
+        myprofile = ProfileManager.getMyInfo(Session.GetInstance());
+        if (myprofile == null) {
+            Log.e(TAG, "No response from ProfileManager.getMyInfo");
+            return null;
+        }
+
+        // Get my all requests list (Include work-done, working, and not-applied requests)
+        String all_worklist = (String) myprofile.get("worklist");
+        Log.d(TAG, "all_worklist: " + all_worklist);
+
+        // Get each request information and  Fill the Group/Child data of Expandable ListView
+        ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
+        ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
+        StringTokenizer st = new StringTokenizer(all_worklist, ";"); // Parse new request list (ex. all_worklist = ";13;52;1;32")
+
+        while (st.hasMoreTokens()) {
+            String id_str = st.nextToken();
+            int id = Integer.parseInt(id_str);
+            Log.d(TAG, "id: " + id_str);
+
+            JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
+
+            String file;
+            if (mode == ProfileManager.USER_MODE.REQUESTER) {
+                file = (String) request.get("final_doc_path");
+                setDownloadableMap(request, file);
+            } else {
+                file = (String) request.get("source_doc_path");
+                setDownloadableMap(request, file);
+
+                file = (String) request.get("reviewed_doc_path");
+                setDownloadableMap(request, file);
+            }
+            Log.d(TAG, "Add file to map: " + file);
+        }
+
+        if (requesterDownloadableFilesMap != null) {
+            return requesterDownloadableFilesMap;
+        } else {
+            return null;
+        }
+/*        if (requesterDownloadableFilesMap != null
+                && mode == ProfileManager.USER_MODE.REQUESTER) {
+            Log.d(TAG, "using:  requesterDownloadableFilesMap");
+            return requesterDownloadableFilesMap;
+        } else if (workerDownloadableFilesMap != null
+                && (mode == ProfileManager.USER_MODE.REVIEWER
+                || mode == ProfileManager.USER_MODE.TRANSLATOR)) {
+            Log.d(TAG, "using: workerDownloadableFilesMap");
+            return workerDownloadableFilesMap;
+        } else {
+            Log.e(TAG, "File Map is NULL!");
+            return null;
+        }*/
+    }
+
+    private static void setDownloadableMap(JSONObject request, String file) {
+        if (file != null && !file.isEmpty()) {
+            requesterDownloadableFilesMap.put("FILE", (String) request.get("final_doc_path"));
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.DONUT)
@@ -388,7 +480,7 @@ public class ClientActivity extends AppCompatActivity {
             AlertDialog.Builder ad = new AlertDialog.Builder(mContext);
             ad.setTitle("Options")
                     .setMessage("Please select options")
-                    .setCancelable(false)
+                    .setCancelable(true)
                     .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -520,9 +612,9 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public static class customExpandableListAdapter extends SimpleExpandableListAdapter {
+        final List<? extends List<? extends Map<String, ?>>> mChildData;
         final private ExpandableListView mExpListView;
         final private int mUserMode;
-        final List<? extends List<? extends Map<String, ?>>> mChildData;
 
 
         public customExpandableListAdapter(Context context,
@@ -685,10 +777,13 @@ public class ClientActivity extends AppCompatActivity {
          */
         static public void showRequestItems(Activity activity, View view) {
             final Activity ac = activity;
+            //Display all the view of new request
+            displayRequestItems(view);
 
             createSpinners(view);
             createDateSelector(view);
             createUploadItems(view, ac);
+            createDownloadItems(view);
             //Listview
 /*                ArrayAdapter<String> adapter2 = new ArrayAdapter<String> (mContext, android.R.layout.simple_list_item_1, paymentList);
                 Spinner pay = (Spinner) view.findViewById(R.id.spinner_pay);
@@ -697,8 +792,30 @@ public class ClientActivity extends AppCompatActivity {
 
         }
 
-        private static void createDateSelector(View view) {
-            Button endDate = (Button) view.findViewById(R.id.end_date);
+        private static void createDownloadItems(View v) {
+            Log.d(TAG, "Show download button");
+            Button dl = (Button) v.findViewById(R.id.down_button);
+
+            if (dl != null) {
+                dl.setVisibility(View.VISIBLE);
+                dl.setOnClickListener(new Button.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        HashMap<String, String> map = (HashMap<String, String>) file.getSelectedItem();
+                        String file = map.get("FILE");
+                        if (file == null) {
+                            Toast.makeText(mContext, "Please select the document", Toast.LENGTH_SHORT);
+                            return;
+                        }
+
+                        FileHandler.downloadFile(mContext, file);
+                    }
+                });
+            }
+        }
+
+        private static void createDateSelector(View v) {
+            Button endDate = (Button) v.findViewById(R.id.due_date);
             endDate.setVisibility(View.VISIBLE);
             if (endDate != null) {
                 endDate.setVisibility(View.VISIBLE);

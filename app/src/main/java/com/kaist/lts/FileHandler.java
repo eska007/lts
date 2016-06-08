@@ -196,6 +196,11 @@ public class FileHandler {
         }, 3000);
     }
 
+    public static void downloadFile(Context context, final String fileName) {
+        Log.d(TAG, "Download file: " + fileName);
+        new DownloadAsync(context).execute(fileName);
+    }
+
     private static int uploadFile(final Context c, final String path, final String fileName) {
         Log.d(TAG, "uploadFile: " + path);
         HttpURLConnection connection;

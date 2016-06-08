@@ -29,7 +29,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="7dp">
+            android:layout_marginTop="10dp">
 
             <TextView
                 android:id="@+id/lang"
@@ -130,12 +130,37 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp">
 
+            <TextView
+                android:id="@+id/files"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:text="Doucments"
+                android:textSize="20dp"
+                android:visibility="gone" />
+
+            <Spinner
+                android:id="@+id/spinner_file"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="15dp"
+                android:prompt="@string/file_prompt"
+                android:spinnerMode="dialog"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
             <Button
-                android:id="@+id/end_date"
+                android:id="@+id/due_date"
                 android:layout_width="123dp"
                 android:layout_height="wrap_content"
                 android:clickable="true"
-                android:text="End date"
+                android:text="Due date"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:visibility="gone" />
 
@@ -153,7 +178,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
+            android:layout_marginTop="20dp">
 
             <Button
                 android:id="@+id/upload_button"
@@ -163,7 +188,26 @@
                 android:layout_centerHorizontal="true"
                 android:background="#039be5"
                 android:gravity="center"
-                android:text="Send"
+                android:text="SEND"
+                android:textColor="#fff"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <Button
+                android:id="@+id/down_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="#039be5"
+                android:gravity="center"
+                android:text="DOWNLOAD"
                 android:textColor="#fff"
                 android:textSize="20sp"
                 android:textStyle="bold"
@@ -207,8 +251,8 @@
         android:layout_alignParentStart="true"
         android:layout_below="@id/frag_exp_list_view_title1"
         android:groupIndicator="@null"
-        android:visibility="gone"
-        android:paddingBottom="100dp">
+        android:paddingBottom="100dp"
+        android:visibility="gone">
     </ExpandableListView>
 
 

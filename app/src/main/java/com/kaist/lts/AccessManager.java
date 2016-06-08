@@ -54,5 +54,4 @@ public class AccessManager {
     public ISession GetSession() {
         return Session.GetInstance();
     }
-
 }

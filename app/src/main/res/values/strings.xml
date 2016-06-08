@@ -13,4 +13,5 @@
     <string name="type_prompt">Translation type</string>
     <string name="level_prompt">Translator level</string>
     <string name="pay_prompt">Payment per 1-page</string>
+    <string name="file_prompt">Downloadable Files</string>
 </resources>
