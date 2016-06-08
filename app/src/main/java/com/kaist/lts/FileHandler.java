@@ -306,7 +306,8 @@ public class FileHandler {
                         @Override
                         public void run() {
                             sendMsgHandler(ClientActivity.UPLOADED);
-                            ClientActivity.updateNotifyMsg(req);
+                            if (req != null)
+                                ClientActivity.updateNotifyMsg(req);
                         }
                     });
                 } else {

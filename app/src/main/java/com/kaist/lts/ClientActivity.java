@@ -23,7 +23,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.ArraySet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -66,13 +65,15 @@ public class ClientActivity extends AppCompatActivity {
     static final int PAGE_NUM_NOTIFY = 1;
     static final int PAGE_NUM_REQUEST = 2;
     static final int PAGE_NUM_PROFILE = 3;
-    static final int PICK_FILE_REQUEST = 1;
+    static final int PICK_FILE_REQUEST1 = 1;
+    static final int PICK_FILE_REQUEST2 = 2;
 
     static public int TIME_OUT = 0;
     static public int UPLOADED = 1;
     static public int ERROR = -1;
     static public Handler mHandler;
     static Context mContext;
+    static Activity mActivity;
     static FileHandler fh;
     static private Spinner type;
     static private Spinner level;
@@ -87,6 +88,8 @@ public class ClientActivity extends AppCompatActivity {
     static private Set<String> downloadableFilesSet;
 
     static private JSONObject mMyprofile = null;
+    static private String upload_file_request_id = null;
+    static private String upload_file_column = null;
 
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
@@ -109,14 +112,19 @@ public class ClientActivity extends AppCompatActivity {
 
     private GoogleApiClient client;
 
-    static private void showFileChooser(Activity activity) {
+    static private void showFileChooser(Activity activity, int requestCode, String request_id, String column) {
         Intent intent = new Intent();
         //sets the select file to all types of files
         intent.setType("file/*");
         //allows to select data and return it
         intent.setAction(Intent.ACTION_GET_CONTENT);
+        if (request_id != null)
+            upload_file_request_id = new String(request_id); // intent.putExtra("request_id", request_id);
+        if (column != null)
+            upload_file_column = new String(column); // intent.putExtra("column", column);
+        Log.d(TAG, "request_id: "+upload_file_request_id+", column:"+upload_file_column);
         //starts new activity to select file and return data
-        activity.startActivityForResult(Intent.createChooser(intent, "Choose File to Upload.."), PICK_FILE_REQUEST);
+        activity.startActivityForResult(Intent.createChooser(intent, "Choose File to Upload.."), requestCode);
     }
 
     static private void createUploadItems(View view, final Activity ac) {
@@ -128,7 +136,7 @@ public class ClientActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     fh = new FileHandler();
-                    showFileChooser(ac);
+                    showFileChooser(ac, PICK_FILE_REQUEST1, null, null);
                 }
             });
         }
@@ -139,49 +147,80 @@ public class ClientActivity extends AppCompatActivity {
             uploadButton.setOnClickListener(new Button.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (fh != null) {
-                        Log.d(TAG, "Display progress bar");
-                        dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
-
-                        //Generate json format
-                        JSONObject req = new JSONObject();
-
-                        //req.put("id", Login.id);
-                        req.put("subject", subjectEdit.getText().toString());
-                        req.put("target_language", RequestManager.getLanuageNum((String)lang.getSelectedItem()));
-                        req.put("doc_type", type.getSelectedItem());
-                        req.put("level", level.getSelectedItem());
-                        req.put("cost", payment.getSelectedItem());
-                        req.put("due_date", dueDate);
-                        String[] truncatedFilePath = selectedFilePath.split("/");
-                        String fileName = truncatedFilePath[truncatedFilePath.length - 1];
-
-                        //Get user mode from server
-                        if (ProfileManager.user_mode == -1) {
-                            ProfileManager.getUserMode(Session.GetInstance());
-                        }
-
-                        if (ProfileManager.user_mode == ProfileManager.USER_MODE.REQUESTER) {
-                            fileName = "1_" + fileName;
-                            req.put("source_doc_path", fileName);
-                        } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.TRANSLATOR) {
-                            fileName = "2_" + fileName;
-                            req.put("translated_doc_path", fileName);
-                        } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.REVIEWER) {
-                            fileName = "3_" + fileName;
-                            req.put("reviewed_doc_path", fileName);
-                        } else {
-                            req.put("source_doc_path", fileName);
-                        }
-
-                        Log.d(TAG, "File rename: " + fileName);
-
-                        FileHandler.createUploadThread(mContext, req, selectedFilePath, wakeLock, fileName);
-                        mHandler.sendEmptyMessageDelayed(TIME_OUT, 60 * 1000); //1 min
-                    }
+                    uploadFile();
                 }
             });
         }
+    }
+
+
+    private static void uploadFileDirect(String request_id, String column) {
+        Log.d(TAG, "Display progress bar");
+        if (fh == null) {
+            Log.e(TAG, "fh == null");
+        }
+
+        dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
+
+        //Generate json format
+        JSONObject req = new JSONObject();
+        req.put("id", Integer.parseInt(request_id));
+        req.put("column", column);
+        String[] truncatedFilePath = selectedFilePath.split("/");
+        String fileName = truncatedFilePath[truncatedFilePath.length - 1];
+        req.put("path", fileName);
+        Log.d(TAG, request_id+", " + column +", File rename: " + fileName);
+
+        RequestManager.uploadData(Session.GetInstance(), req);
+        FileHandler.createUploadThread(mContext, null, selectedFilePath, wakeLock, fileName);
+        selectedFilePath = null;
+        mHandler.sendEmptyMessageDelayed(TIME_OUT, 60 * 1000); //1 min
+    }
+
+    private static void uploadFile() {
+        Log.d(TAG, "Display progress bar");
+        if (fh == null) {
+            Log.e(TAG, "fh == null");
+        }
+
+        dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
+
+        //Generate json format
+        JSONObject req = new JSONObject();
+
+        //req.put("id", Login.id);
+        req.put("subject", subjectEdit.getText().toString());
+        req.put("target_language", RequestManager.getLanuageNum((String)lang.getSelectedItem()));
+        req.put("doc_type", type.getSelectedItem());
+        req.put("level", level.getSelectedItem());
+        req.put("cost", payment.getSelectedItem());
+        req.put("due_date", dueDate);
+        String[] truncatedFilePath = selectedFilePath.split("/");
+        String fileName = truncatedFilePath[truncatedFilePath.length - 1];
+
+        //Get user mode from server
+        if (ProfileManager.user_mode == -1) {
+            ProfileManager.getUserMode(Session.GetInstance());
+        }
+
+        if (ProfileManager.user_mode == ProfileManager.USER_MODE.REQUESTER) {
+            fileName = "1_" + fileName;
+            req.put("source_doc_path", fileName);
+        } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.TRANSLATOR) {
+            fileName = "2_" + fileName;
+            req.put("translated_doc_path", fileName);
+        } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.REVIEWER) {
+            fileName = "3_" + fileName;
+            req.put("reviewed_doc_path", fileName);
+        } else {
+            req.put("source_doc_path", fileName);
+        }
+
+        Log.d(TAG, "File rename: " + fileName);
+
+        FileHandler.createUploadThread(mContext, req, selectedFilePath, wakeLock, fileName);
+        selectedFilePath = null;
+        mHandler.sendEmptyMessageDelayed(TIME_OUT, 60 * 1000); //1 min
     }
 
     static public void updateNotifyMsg(JSONObject req) {
@@ -275,6 +314,7 @@ public class ClientActivity extends AppCompatActivity {
         dateBt.setVisibility(View.VISIBLE);
     }
 
+    @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     static private void showRequestList(Activity activity, View view, int user_mode) {
         final Activity ac = activity;
         Log.d(TAG, "Show Request List");
@@ -336,6 +376,8 @@ public class ClientActivity extends AppCompatActivity {
             curr.put("ID", id_str);
             curr.put("SUBJECT", (String) request.get("subject"));
             String file = (String) request.get("final_doc_path");
+            if (file.isEmpty() == false)
+                curr.put("IS_FINISHED", "TRUE");
 
             //setDownloadableMap(request, file);
             if (applied_requests_set != null) {
@@ -462,6 +504,7 @@ public class ClientActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         mContext = this;
+        mActivity = this;
         super.onCreate(savedInstanceState);
 
         if (mMyprofile == null) {
@@ -570,7 +613,7 @@ public class ClientActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == PICK_FILE_REQUEST) {
+            if (requestCode == PICK_FILE_REQUEST1 || requestCode == PICK_FILE_REQUEST2) {
                 if (data == null) {
                     //no data present
                     return;
@@ -583,6 +626,10 @@ public class ClientActivity extends AppCompatActivity {
                 Uri selectedFileUri = data.getData();
                 selectedFilePath = FileHandler.getPath(this, selectedFileUri);
                 Log.d(TAG, "Selected file:" + selectedFilePath);
+                if (requestCode == PICK_FILE_REQUEST2) {
+                    Log.d(TAG, "Upload file directly");
+                    uploadFileDirect(upload_file_request_id,upload_file_column);
+                }
 
 /*                if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
                     Toast.makeText(this, "upload file selected", Toast.LENGTH_SHORT).show();
@@ -664,7 +711,7 @@ public class ClientActivity extends AppCompatActivity {
         final List<? extends List<? extends Map<String, ?>>> mChildData;
         final private ExpandableListView mExpListView;
         final private int mUserMode;
-        static ArraySet<String> all_doc_path = null;
+        static HashSet<String> all_doc_path = null;
 
         public customExpandableListAdapter(Context context,
                                     List<? extends Map<String, ?>> groupData, int groupLayout,
@@ -685,11 +732,42 @@ public class ClientActivity extends AppCompatActivity {
             View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
                 TextView tview = (TextView)view.findViewById(R.id.req_list_item_desc);
-                tview.setLayoutParams(new LinearLayout.LayoutParams
-                        (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                if (showEvaluationBtn(view, groupPosition)) {
+                    tview.setLayoutParams(new LinearLayout.LayoutParams(300, 40));
+                }else {
+                    tview.setLayoutParams(new LinearLayout.LayoutParams
+                            (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                }
                 return view;
             }
+            checkApplyBtn(view, groupPosition);
+            return view;
+        }
 
+        private boolean showEvaluationBtn(View view, int groupPosition) {
+            final Button evaluate_btn = (Button) view.findViewById(R.id.request_evaluation_btn);
+
+            Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
+            if (groupdata.get("IS_FINISHED") == null) {
+                disableButton(evaluate_btn, "Evaluate");
+                evaluate_btn.setVisibility(View.GONE);
+                return false;
+            }
+
+            evaluate_btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.d(TAG, "evaluate_btn onClick");
+                    // TODO: Evaluate
+                    //new Notifier(Notifier.Command.RESULT_OF_BID, request_id, mContext);
+                }
+            });
+            evaluate_btn.setVisibility(View.VISIBLE);
+            enableButton(evaluate_btn, "Evaluate");
+            return true;
+        }
+
+        private void checkApplyBtn(View view, int groupPosition) {
             // Show Apply Button If it's new requests (Not applied yet)
             // Only for Translator and Reviewer
             Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
@@ -722,9 +800,7 @@ public class ClientActivity extends AppCompatActivity {
             apply_btn.setVisibility(View.VISIBLE);
             apply_btn.setTag(R.id.request_apply_btn, groupdata.get("ID"));
             apply_btn.setTag(R.id.request_apply_btn + 1, groupPosition);
-            return view;
         }
-
         @Override
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
                                  View convertView, ViewGroup parent) {
@@ -760,6 +836,12 @@ public class ClientActivity extends AppCompatActivity {
             }else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
                 target = "reviewer_candidate_list";
                 target2 = "reviewer_id";
+                Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
+                String is_employed = groupdata.get("IS_EMPLOYED");
+                if (is_employed == null || is_employed.equals("FALSE")) {
+                    select_btn.setVisibility(View.GONE);
+                    return;
+                }
             }else {
                 select_btn.setVisibility(View.GONE);
                 return;
@@ -830,7 +912,7 @@ public class ClientActivity extends AppCompatActivity {
             }
 
             if (all_doc_path == null) {
-                all_doc_path = new ArraySet<String>();
+                all_doc_path = new HashSet<String>();
                 all_doc_path.add("source_doc_path");
                 all_doc_path.add("translated_doc_path");
                 all_doc_path.add("reviewed_doc_path");
@@ -848,8 +930,14 @@ public class ClientActivity extends AppCompatActivity {
             download_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    // Downlad this path(= (String)view.getTag());
                     Log.d(TAG, "Download onClick");
-                    // TODO: Downlad this path(= (String)view.getTag());
+                    String fileName = (String) view.getTag();
+                    if (fileName == null || fileName.isEmpty()) {
+                        Toast.makeText(mContext, "Please select the document", Toast.LENGTH_SHORT);
+                        return;
+                    }
+                    FileHandler.downloadFile(mContext, fileName);
                 }
             });
             download_btn.setVisibility(View.VISIBLE);
@@ -875,7 +963,7 @@ public class ClientActivity extends AppCompatActivity {
             }
 
             if (all_doc_path == null) {
-                all_doc_path = new ArraySet<String>();
+                all_doc_path = new HashSet<String>();
                 all_doc_path.add("source_doc_path");
                 all_doc_path.add("translated_doc_path");
                 all_doc_path.add("reviewed_doc_path");
@@ -907,13 +995,21 @@ public class ClientActivity extends AppCompatActivity {
             }
 
             enableButton(upload_btn, "Upload");
-            upload_btn.setTag(childdata.get("DATA")); // Download path
+            Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
+
+            String request_id = groupdata.get("ID");
+            Log.d(TAG, "getAnotherChildData request_id:" + request_id);
+            upload_btn.setTag(R.id.upload_btn, request_id); // request_id
+            upload_btn.setTag(R.id.upload_btn+1, childdata.get("KEY")); // column
             upload_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Log.d(TAG, "Upload onClick");
-                    if (false /*TODO: Upload data.*/)
-                        upload_btn.setVisibility(View.GONE);
+                    fh = new FileHandler();
+                    upload_btn.setVisibility(View.GONE);
+                    String request_id = (String)view.getTag(R.id.upload_btn);
+                    String column = (String)view.getTag(R.id.upload_btn+1);
+                    showFileChooser(mActivity, PICK_FILE_REQUEST2, request_id, column);
                 }
             });
             upload_btn.setVisibility(View.VISIBLE);

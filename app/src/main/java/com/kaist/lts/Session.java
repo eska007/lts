@@ -143,7 +143,7 @@ public class Session implements ISession{
 
             // Send data
             OutputStreamWriter osw = new OutputStreamWriter(con.getOutputStream(), "UTF-8");
-            System.out.println("json:" + input.toString());
+            Log.d(TAG, "json:" + input.toString());
             osw.write(input.toString());
             osw.flush();
             osw.close();

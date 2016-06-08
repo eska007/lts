@@ -56,6 +56,14 @@ public class RequestManager {
         // TODO: Try "new Notifier(Notifier.Command.GET_LIST_OF_CANDIDATES,this.getApplicationContext());" after this function,
     }
 
+    public static ISession.RetVal uploadData(ISession cs, JSONObject input) {
+        input.put("command", "UPLOAD_DATA");
+        JSONObject output = new JSONObject();
+        ISession.RetVal ret = cs.SendRequest(input, output);
+        Log.d(TAG, "UPLOAD_DATA result : " + ret + ", output : " + output.toString());
+        return ret;
+    }
+
     public static JSONObject getRequestInfo(ISession cs, int request_id /*request_id will be provided by Notifier(NEW_TRANSLATION_REQUEST) */) {
         if (cs == null)
             return null;
