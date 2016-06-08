@@ -10,19 +10,16 @@ import org.json.simple.JSONObject;
 public class RequestManager {
     static final String TAG = "[LTS][RequestManager]";
 
-    public class LANGUAGE {
-        public static final int KOREAN = 0;
-        public static final int ENGLISH = 1;
-        public static final int CHINESE = 2;
-        public static final int JAPANESE = 3;
-    }
-
     public static int getLanuageNum(String str) {
-        switch(str.toLowerCase()) {
-            case "korean": return LANGUAGE.KOREAN;
-            case "english": return LANGUAGE.ENGLISH;
-            case "chinese": return LANGUAGE.CHINESE;
-            case "japanese": return LANGUAGE.JAPANESE;
+        switch (str.toLowerCase()) {
+            case "korean":
+                return LANGUAGE.KOREAN;
+            case "english":
+                return LANGUAGE.ENGLISH;
+            case "chinese":
+                return LANGUAGE.CHINESE;
+            case "japanese":
+                return LANGUAGE.JAPANESE;
             default:
                 return LANGUAGE.ENGLISH;
         }
@@ -60,6 +57,9 @@ public class RequestManager {
     }
 
     public static JSONObject getRequestInfo(ISession cs, int request_id /*request_id will be provided by Notifier(NEW_TRANSLATION_REQUEST) */) {
+        if (cs == null)
+            return null;
+
         JSONObject input = new JSONObject();
         input.put("command", "GET_REQUEST_INFO");
         input.put("id", request_id);
@@ -120,5 +120,12 @@ public class RequestManager {
 
         Log.e(TAG, "There is no meaningful info");
         return null;
+    }
+
+    public class LANGUAGE {
+        public static final int KOREAN = 0;
+        public static final int ENGLISH = 1;
+        public static final int CHINESE = 2;
+        public static final int JAPANESE = 3;
     }
 }
