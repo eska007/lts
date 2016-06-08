@@ -294,11 +294,13 @@ public class ClientActivity extends AppCompatActivity {
             Iterator<Object> itr = request.keySet().iterator();
             while (itr.hasNext()) {
                 Object key = itr.next();
-                String val = (String) request.get(key);
-                if (val.equals("id") || val.equals("subject"))
+                String allowedTerm = ItemFilter.GetAllowedTermForRequestColumn((String)key, user_mode);
+                if (allowedTerm == null) // Filtering
                     continue;
+                String val = (String) request.get(key); // Column
                 Map<String, String> child = new HashMap<String, String>();
-                child.put("ITEM", (String) key);
+                child.put("ITEM", allowedTerm);
+                child.put("KEY", (String)key);
                 child.put("DATA", val);
                 children.add(child);
             }
@@ -592,7 +594,7 @@ public class ClientActivity extends AppCompatActivity {
                 target2 = "reviewer_id";
             }
 
-            if (false == childdata.get("ITEM").equals(target) || childdata.get("DATA").isEmpty()) {
+            if (false == childdata.get("KEY").equals(target) || childdata.get("DATA").isEmpty()) {
                 select_btn.setVisibility(View.INVISIBLE);
             } else {
                 // If this group has worker_id , disable Button;
@@ -601,7 +603,7 @@ public class ClientActivity extends AppCompatActivity {
                 boolean isSelected = false;
                 while (itr.hasNext()) {
                     Map<String, String> key = itr.next();
-                    if (key.get("ITEM").equals(target2)) {
+                    if (key.get("KEY").equals(target2)) {
                         if (key.get("DATA").isEmpty() == false)
                             isSelected = true;
                         break;

@@ -79,10 +79,11 @@ public class SelectWorkerActivity extends AppCompatActivity {
             while (itr.hasNext()) {
                 Object key = itr.next();
                 String val = (String)member_info.get(key);
-                if (val.equals("id"))
+                String allowedTerm = ItemFilter.GetAllowedTermForMemberColumn((String)key, user_mode);
+                if (allowedTerm == null) // Filtering
                     continue;
                 Map<String, String> child = new HashMap<String, String>();
-                child.put("ITEM", (String) key);
+                child.put("ITEM", allowedTerm);
                 child.put("DATA", val);
                 children.add(child);
             }

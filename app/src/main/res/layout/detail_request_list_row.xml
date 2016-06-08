@@ -1,40 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:weightSum="1">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Small Text"
-        android:id="@+id/detail_req_list_item"
-        android:textSize="20dp"
-        android:layout_marginLeft="30dp"
-        android:textColor="#000000"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=": "
-        android:textSize="20dp"
-        android:textColor="#000000"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/detail_req_list_item"
-        android:text="Small Text"
-        android:id="@+id/detail_req_list_data"
-        android:textSize="20dp"
-        android:textColor="#000000"/>
+    <LinearLayout
+        android:id="@+id/detail_req_list"
+        android:orientation="horizontal"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Small Text"
+            android:id="@+id/detail_req_list_item"
+            android:textSize="20dp"
+            android:layout_marginLeft="30dp"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/detail_req_list_colon"
+            android:text=": "
+            android:textSize="20dp"
+            android:textColor="#000000"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Small Text"
+            android:id="@+id/detail_req_list_data"
+            android:textSize="20dp"
+            android:textColor="#000000"/>
+        <!--android:layout_toRightOf="@id/detail_req_list_colon"-->
+    </LinearLayout>
+
     <Button
         android:id="@+id/select_worker_btn"
         style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
+        android:layout_width="70dp"
         android:layout_height="match_parent"
         android:layout_alignParentRight="true"
         android:layout_gravity="center_vertical"
+        android:baselineAligned="false"
         android:focusable="false"
-        android:visibility="gone"
-        android:text="Select Worker"
+        android:visibility="visible"
+        android:text="Select"
         android:textSize="10dp"
         android:textColor="#000000" />
+    <!---android:layout_toRightOf="@id/detail_req_list"-->
 </LinearLayout>
