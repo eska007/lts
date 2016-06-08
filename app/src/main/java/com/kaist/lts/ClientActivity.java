@@ -15,6 +15,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -38,6 +39,7 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -464,13 +466,15 @@ public class ClientActivity extends AppCompatActivity {
         }
     }
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-    static private void showRequestList(Activity activity, View view, int user_mode) {
+    static private void showWorkList(Activity activity, View view, int user_mode) {
         final Activity ac = activity;
         Log.d(TAG, "Show Request List");
 
         // Show title
+        TextView title = (TextView) view.findViewById(R.id.work_list_text);
         TextView title1 = (TextView) view.findViewById(R.id.frag_exp_list_view_title1);
         TextView title2 = (TextView) view.findViewById(R.id.frag_exp_list_view_title2);
+        title.setVisibility(View.VISIBLE);
         title1.setVisibility(View.VISIBLE);
         title2.setVisibility(View.VISIBLE);
 
@@ -1355,18 +1359,26 @@ public class ClientActivity extends AppCompatActivity {
             int user_mode = ProfileManager.getUserMode(Session.GetInstance());
             switch (pageViewNumber) {
                 case PAGE_NUM_NOTIFY:
-                    showRequestList(getActivity(), rootView, user_mode);
+                    showWorkList(getActivity(), rootView, user_mode);
                     break;
                 case PAGE_NUM_REQUEST:
                     showRequestItems(getActivity(), rootView);
                     break;
                 case PAGE_NUM_PROFILE:
+                    showMyProfile(getActivity(), rootView);
                 default:
             }
             //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             //textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 
             return rootView;
+        }
+
+        private void showMyProfile(FragmentActivity ac, View v) {
+            ScrollView profileLayout = (ScrollView) v.findViewById(R.id.profile_layout);
+            profileLayout.setVisibility(View.VISIBLE);
+
+            ProfileManager.getMemberInfo(Session.GetInstance(), Login.id);
         }
     }
 

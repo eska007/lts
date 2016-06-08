@@ -19,13 +19,19 @@ public class AccessManager {
     static final String WORKLISTV_CLASS_NAME = "com.kaist.lts.WorklistViewer";
 
     private static AccessManager am;
+    private static ISession sc;
+    private static ProfileManager pm;
     final String TAG = "[LTS][AccessManager]";
 
     public AccessManager(Context context) {
         Log.d(TAG, "Create");
         am = this;
-        //Start ClientActivity class.
-        GetSession();
+
+        //Create Profile Manager
+        pm = new ProfileManager();
+
+        //Start connect Session
+        sc = getConnectSession();
 
         if (MainActivity.mPrefs.getBoolean("registration", false) == false) {
             Log.d(TAG, "Start Sel Registration");
@@ -52,7 +58,17 @@ public class AccessManager {
         context.startActivity(intent);
     }
 
-    public ISession GetSession() {
+    public ProfileManager getProfileManager() {
+        if (pm != null) {
+            return pm;
+        }
+        return new ProfileManager();
+    }
+
+    public ISession getConnectSession() {
+        if (sc != null) {
+            return sc;
+        }
         return Session.GetInstance();
     }
 }

@@ -13,6 +13,7 @@
         android:layout_height="fill_parent">
 
         <LinearLayout
+            android:id="@+id/request_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
@@ -28,6 +29,7 @@
                 android:text="New"
                 android:textColor="@color/colorAccent"
                 android:textSize="40dp"
+                android:textStyle="bold"
                 android:visibility="gone" />
 
             <TextView
@@ -294,42 +296,261 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
-    <!--    <TextView
-            android:id="@+id/section_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />-->
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/profile_layout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin">
+
+            <TextView
+                android:id="@+id/profile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="My Profile"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="40dp"
+                android:textStyle="bold" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/id"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="ID"
+                    android:textSize="18dp" />
+
+                <EditText
+                    android:id="@+id/et_id"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter ID"
+                    android:textSize="18dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Given Names"
+                    android:textSize="18dp" />
+
+                <EditText
+                    android:id="@+id/et_names"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="18dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Surname"
+                    android:textSize="18dp" />
+
+                <EditText
+                    android:id="@+id/et_surname"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sex"
+                    android:textSize="18dp" />
+
+                <CheckBox
+                    android:id="@+id/btn_man"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:allowUndo="false"
+                    android:text="man" />
+
+                <CheckBox
+                    android:id="@+id/btn_woman"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="woman" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="e-mail"
+                    android:textSize="18dp" />
+
+                <EditText
+                    android:id="@+id/et_email"
+                    android:layout_width="300dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textEmailAddress" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mobile"
+                    android:textSize="18dp" />
+
+                <EditText
+                    android:id="@+id/et_phone"
+                    android:layout_width="300dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="phone" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Country"
+                    android:textSize="18dp" />
+
+                <EditText
+                    android:id="@+id/et_country"
+                    android:layout_width="300dp"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Address"
+                    android:textSize="18dp" />
+
+                <EditText
+                    android:id="@+id/et_address"
+                    android:layout_width="300dp"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="30dp">
+
+                <Button
+                    android:id="@+id/btn_modify"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+
+                    android:layout_weight="0.26"
+                    android:text="Modify" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <TextView
-        android:id="@+id/frag_exp_list_view_title1"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="1dp"
-        android:background="#96d3ff"
-        android:gravity="center_vertical|center_horizontal"
-        android:text="ID"
-        android:textSize="20dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/frag_exp_list_view_title2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="1dp"
-        android:layout_toRightOf="@id/frag_exp_list_view_title1"
-        android:background="#96d3ff"
-        android:gravity="center_vertical|center_horizontal"
-        android:text="Subject"
-        android:textSize="20dp"
-        android:visibility="gone" />
-
-    <ExpandableListView
-        android:id="@+id/request_list_view"
+        android:id="@+id/work_list_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/frag_exp_list_view_title1"
-        android:groupIndicator="@null"
-        android:paddingBottom="100dp"
-        android:visibility="gone"></ExpandableListView>
+        android:text="Work Lists"
+        android:textColor="@color/cardview_shadow_start_color"
+        android:textSize="40dp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
+    <LinearLayout
+        android:id="@+id/frag_exp_list_view_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="80dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/frag_exp_list_view_title1"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="1dp"
+            android:background="#96d3ff"
+            android:gravity="center_vertical|center_horizontal"
+            android:text="ID"
+            android:textSize="20dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/frag_exp_list_view_title2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="1dp"
+            android:layout_toRightOf="@id/frag_exp_list_view_title1"
+            android:background="#96d3ff"
+            android:gravity="center_vertical|center_horizontal"
+            android:text="Subject"
+            android:textSize="20dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/frag_exp_list_view_layout">
+
+        <ExpandableListView
+            android:id="@+id/request_list_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/frag_exp_list_view_title1"
+            android:groupIndicator="@null"
+            android:paddingBottom="100dp"
+            android:visibility="gone"></ExpandableListView>
+    </LinearLayout>
 </RelativeLayout>
+
