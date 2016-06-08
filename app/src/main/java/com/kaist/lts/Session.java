@@ -160,6 +160,9 @@ public class Session implements ISession{
             // Convert received binary to JSON format
             JSONParser jsonParser = new JSONParser();
             JSONObject obj = (JSONObject) jsonParser.parse(received_data);
+
+            if (obj == null)
+                return ISession.RetVal.RET_PARAM_ERROR;
             //// deep copy the json data
             Iterator<Object> itr = obj.keySet().iterator();
             if (itr == null) {

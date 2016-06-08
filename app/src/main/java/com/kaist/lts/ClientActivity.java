@@ -34,6 +34,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
@@ -69,16 +70,18 @@ public class ClientActivity extends AppCompatActivity {
 
     static public int TIME_OUT = 0;
     static public int UPLOADED = 1;
+    static public int ERROR = -1;
     static public Handler mHandler;
     static Context mContext;
     static FileHandler fh;
-    static Spinner type;
-    static Spinner level;
-    static Spinner payment;
-    static Spinner lang;
-    static Spinner file;
-    static String dueDate;
-    static String selectedFilePath;
+    static private Spinner type;
+    static private Spinner level;
+    static private Spinner payment;
+    static private Spinner lang;
+    static private Spinner file;
+    static private String dueDate;
+    static private String selectedFilePath;
+    static private TextView subjectEdit;
     static private PowerManager.WakeLock wakeLock;
     static private ProgressDialog dialog;
     static private Set<String> downloadableFilesSet;
@@ -144,6 +147,7 @@ public class ClientActivity extends AppCompatActivity {
                         JSONObject req = new JSONObject();
 
                         //req.put("id", Login.id);
+                        req.put("subject", subjectEdit.getText().toString());
                         req.put("target_language", RequestManager.getLanuageNum((String)lang.getSelectedItem()));
                         req.put("doc_type", type.getSelectedItem());
                         req.put("level", level.getSelectedItem());
@@ -172,22 +176,23 @@ public class ClientActivity extends AppCompatActivity {
 
                         Log.d(TAG, "File rename: " + fileName);
 
-                        int request_id = RequestManager.addNewRequest(Session.GetInstance(), req);
-                        if (request_id <= 0) {
-                            Log.e(TAG, "Fail to Add new request, id:"+Integer.toString(request_id));
-                            return;
-                        }
-
-                        FileHandler.createUploadThread(mContext, selectedFilePath, wakeLock, fileName);
-                        mHandler.sendEmptyMessageDelayed(TIME_OUT, 60 * 1000); //1min
-
-                        new Notifier(Notifier.Command.LIST_OF_CANDIDATES, request_id, mContext); // To get notification of candidate reviewers.
+                        FileHandler.createUploadThread(mContext, req, selectedFilePath, wakeLock, fileName);
+                        mHandler.sendEmptyMessageDelayed(TIME_OUT, 60 * 1000); //1 min
                     }
                 }
             });
         }
     }
 
+    static public void updateNotifyMsg(JSONObject req) {
+        int request_id = RequestManager.addNewRequest(Session.GetInstance(), req);
+        if (request_id <= 0) {
+            Log.e(TAG, "Fail to Add new request, id:" + Integer.toString(request_id));
+            return;
+        }
+
+        new Notifier(Notifier.Command.LIST_OF_CANDIDATES, request_id, mContext); // To get notification of candidate reviewers.
+    }
     private static void createSpinners(View view) {
 
         type = (Spinner) view.findViewById(R.id.spinner_type);
@@ -251,6 +256,7 @@ public class ClientActivity extends AppCompatActivity {
 
     private static void displayRequestItems(View view) {
         TextView newText = (TextView) view.findViewById(R.id.new_request);
+        TextView subjectText = (TextView) view.findViewById(R.id.subject);
         TextView langTest = (TextView) view.findViewById(R.id.lang);
         TextView typeText = (TextView) view.findViewById(R.id.type);
         TextView levelText = (TextView) view.findViewById(R.id.level);
@@ -258,7 +264,10 @@ public class ClientActivity extends AppCompatActivity {
 
         Button dateBt = (Button) view.findViewById(R.id.due_date);
 
+        subjectEdit = (EditText) view.findViewById(R.id.subject_desc);
+        subjectEdit.setVisibility(View.VISIBLE);
         newText.setVisibility(View.VISIBLE);
+        subjectText.setVisibility(View.VISIBLE);
         langTest.setVisibility(View.VISIBLE);
         typeText.setVisibility(View.VISIBLE);
         levelText.setVisibility(View.VISIBLE);
@@ -320,6 +329,8 @@ public class ClientActivity extends AppCompatActivity {
             Log.d(TAG, "id: " + id_str);
 
             JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
+            if (request == null)
+                continue;
 
             Map<String, String> curr = new HashMap<String, String>();
             curr.put("ID", id_str);
@@ -468,8 +479,15 @@ public class ClientActivity extends AppCompatActivity {
             @Override
             public void handleMessage(Message msg) {
                 //super.handleMessage(msg);
-                if (msg.what == TIME_OUT || msg.what == UPLOADED) {
+                if (msg.what == UPLOADED) {
+                    Log.d(TAG, "msg: UPLAODED");
                     if (dialog != null) {
+                        dialog.dismiss();
+                    }
+                } else if (msg.what == TIME_OUT || msg.what == ERROR) {
+                    Log.d(TAG, "msg: error, code: " + msg.what);
+                    if (dialog != null) {
+                        Toast.makeText(mContext, "Error.. uploading file", Toast.LENGTH_SHORT);
                         dialog.dismiss();
                     }
                 }

@@ -14,6 +14,8 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.json.simple.JSONObject;
+
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -168,7 +170,7 @@ public class FileHandler {
                 .getAuthority());
     }
 
-    public static void createUploadThread(Context context, String filePath, PowerManager.WakeLock wakeLock, final String fileName) {
+    public static void createUploadThread(Context context, final JSONObject req, String filePath, PowerManager.WakeLock wakeLock, final String fileName) {
         final Context c = context;
         final String fp = filePath;
 
@@ -182,7 +184,7 @@ public class FileHandler {
                     //creating new thread to handle Http Operations
                     // DEBUG
                     // Toast.makeText(c, "Upload File", Toast.LENGTH_SHORT).show();
-                    uploadFile(c, fp, fileName);
+                    uploadFile(c, fp, req, fileName);
                 } catch (OutOfMemoryError e) {
 
                     runOnUiThread(new Runnable() {
@@ -201,14 +203,13 @@ public class FileHandler {
         new DownloadAsync(context).execute(fileName);
     }
 
-    private static int uploadFile(final Context c, final String path, final String fileName) {
-        Log.d(TAG, "uploadFile: " + path);
+    private static int uploadFile(final Context c, final String path, final JSONObject req, final String fileName) {
+        Log.d(TAG, "uploadFile: " + path + ", saved: " + fileName);
         HttpURLConnection connection;
         DataOutputStream dataOutputStream;
         String lineEnd = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";
-
 
         int bytesRead, bytesAvailable, bufferSize;
         int serverResponseCode = 0;
@@ -227,14 +228,18 @@ public class FileHandler {
                     Toast.makeText(c, "Src File doesn't exist:" + path, Toast.LENGTH_SHORT).show();
                 }
             });
+            Log.e(TAG, selectedFile + "is invalid");
+            sendMsgHandler(ClientActivity.ERROR);
             return 0;
         } else {
             try {
                 FileInputStream fileInputStream = new FileInputStream(selectedFile);
-                AccessManager am = AccessManager.getAccessManager();
-                if (am != null) {
-                    Log.d(TAG, "Try to connect server via open session");
-                    ISession s = am.GetSession();
+                //AccessManager am = AccessManager.getAccessManager();
+                //if (am != null) {
+                Log.d(TAG, "Try to connect server via open session");
+                ISession s = Session.GetInstance();
+
+                if (s != null) {
                     connection = s.ConnectServer(SERVER_UPLOAD_URL, null, null);
                     connection.setRequestProperty("Connection", "Keep-Alive");
                     connection.setRequestProperty("ENCTYPE", "multipart/form-data");
@@ -245,6 +250,8 @@ public class FileHandler {
                     //Log.d(TAG, "Rename of file: " + fileName);
                     connection.setRequestProperty("uploaded_file", fileName);
                 } else {
+                    Log.e(TAG, "Error to Connect to server");
+                    sendMsgHandler(ClientActivity.ERROR);
                     return 0;
                 }
 
@@ -274,7 +281,7 @@ public class FileHandler {
                         //write the bytes read from inputstream
                         dataOutputStream.write(buffer, 0, bufferSize);
                     } catch (OutOfMemoryError e) {
-                        Toast.makeText(c, "Insufficient Memory!", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Memory Insufficient!");
                     }
                     bytesAvailable = fileInputStream.available();
                     bufferSize = Math.min(bytesAvailable, defaultBufferSize);
@@ -287,7 +294,7 @@ public class FileHandler {
                 try {
                     serverResponseCode = connection.getResponseCode();
                 } catch (OutOfMemoryError e) {
-                    Toast.makeText(c, "Memory Insufficient!", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Memory Insufficient!");
                 }
                 String serverResponseMessage = connection.getResponseMessage();
 
@@ -298,11 +305,12 @@ public class FileHandler {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (ClientActivity.mHandler != null) {
-                                ClientActivity.mHandler.sendEmptyMessage(ClientActivity.UPLOADED);
-                            }
+                            sendMsgHandler(ClientActivity.UPLOADED);
+                            ClientActivity.updateNotifyMsg(req);
                         }
                     });
+                } else {
+                    sendMsgHandler(ClientActivity.ERROR);
                 }
 
                 //closing the input and output streams
@@ -343,7 +351,14 @@ public class FileHandler {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
             return serverResponseCode;
+        }
+    }
+
+    private static void sendMsgHandler(int msg) {
+        if (ClientActivity.mHandler != null) {
+            ClientActivity.mHandler.sendEmptyMessage(msg);
         }
     }
 }
