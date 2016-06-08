@@ -340,6 +340,7 @@
                     android:id="@+id/et_id"
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:hint="Enter ID"
                     android:textSize="18dp" />
 
@@ -359,6 +360,7 @@
                     android:id="@+id/et_names"
                     android:layout_width="100dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:textSize="18dp" />
 
             </LinearLayout>
@@ -376,7 +378,8 @@
                 <EditText
                     android:id="@+id/et_surname"
                     android:layout_width="100dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -418,6 +421,7 @@
                     android:id="@+id/et_email"
                     android:layout_width="300dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:ems="10"
                     android:inputType="textEmailAddress" />
 
@@ -437,6 +441,7 @@
                     android:id="@+id/et_phone"
                     android:layout_width="300dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
                     android:ems="10"
                     android:inputType="phone" />
 
@@ -455,7 +460,8 @@
                 <EditText
                     android:id="@+id/et_country"
                     android:layout_width="300dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp" />
 
             </LinearLayout>
 
@@ -472,7 +478,8 @@
                 <EditText
                     android:id="@+id/et_address"
                     android:layout_width="300dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp" />
 
             </LinearLayout>
 
@@ -487,7 +494,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-
                     android:layout_weight="0.26"
                     android:text="Modify" />
             </LinearLayout>

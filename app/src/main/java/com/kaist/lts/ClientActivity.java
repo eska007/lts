@@ -15,7 +15,6 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -33,6 +32,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
@@ -1374,11 +1374,45 @@ public class ClientActivity extends AppCompatActivity {
             return rootView;
         }
 
-        private void showMyProfile(FragmentActivity ac, View v) {
+        private void showMyProfile(Activity ac, View v) {
             ScrollView profileLayout = (ScrollView) v.findViewById(R.id.profile_layout);
             profileLayout.setVisibility(View.VISIBLE);
 
-            ProfileManager.getMemberInfo(Session.GetInstance(), Login.id);
+
+            //String myid = (mMyprofile != null ? (String)(mMyprofile.get("id")) : null);
+
+            EditText idEdit = (EditText) v.findViewById(R.id.et_id);
+            idEdit.setText((String) mMyprofile.get("id"));
+
+            EditText givenNameEdit = (EditText) v.findViewById(R.id.et_names);
+            givenNameEdit.setText((String) mMyprofile.get("family_name"));
+
+            EditText surNameEdit = (EditText) v.findViewById(R.id.et_surname);
+            surNameEdit.setText((String) mMyprofile.get("first_name"));
+
+            EditText emailEdit = (EditText) v.findViewById(R.id.et_email);
+            emailEdit.setText((String) mMyprofile.get("email"));
+
+            EditText phoneEdit = (EditText) v.findViewById(R.id.et_phone);
+            phoneEdit.setText((String) mMyprofile.get("phone"));
+
+            EditText countryEdit = (EditText) v.findViewById(R.id.et_country);
+            countryEdit.setText((String) mMyprofile.get("country"));
+
+            EditText addressEdit = (EditText) v.findViewById(R.id.et_address);
+            addressEdit.setText((String) mMyprofile.get("address"));
+
+            String sex = (String) mMyprofile.get("sex");
+
+            CheckBox ckBox;
+
+            if (sex.equals("1")) {
+                ckBox = (CheckBox) v.findViewById(R.id.btn_woman);
+                ckBox.setChecked(true);
+            } else if (sex.equals("0")) {
+                ckBox = (CheckBox) v.findViewById(R.id.btn_man);
+                ckBox.setChecked(true);
+            }
         }
     }
 
