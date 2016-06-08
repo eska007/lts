@@ -80,10 +80,7 @@ public class ClientActivity extends AppCompatActivity {
     static String selectedFilePath;
     static private PowerManager.WakeLock wakeLock;
     static private ProgressDialog dialog;
-    static private HashMap<String, String> requesterDownloadableFilesMap
-            = new HashMap<String, String>();
-    static private HashMap<String, String> workerDownloadableFilesMap
-            = new HashMap<String, String>();
+    static private Set<String> downloadableFilesSet;
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
      * The {@link PagerAdapter} that will provide
@@ -219,21 +216,32 @@ public class ClientActivity extends AppCompatActivity {
             ProfileManager.getUserMode(Session.GetInstance());
         }
 
-        HashMap<String, String> downloadFilesMap = getDownloadableFilesMap(ProfileManager.user_mode);
+        Set<String> downloadFilesSet = getDownloadableFilesSet(ProfileManager.user_mode);
 
-        if (downloadFilesMap != null) {
-            Log.d(TAG, "Map size: " + downloadFilesMap.size());
-            file = (Spinner) view.findViewById(R.id.spinner_file);
-            file.setVisibility(View.VISIBLE);
+        if (downloadFilesSet != null) {
+            int fileCount = downloadFilesSet.size();
+            Log.d(TAG, "size: " + fileCount);
 
-            //ArrayAdapter<String> adapter5
-            //        = new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_spinner_item);
-            ArrayAdapter<HashMap<String, String>> adapter5
-                    = new ArrayAdapter<HashMap<String, String>>(view.getContext(), android.R.layout.simple_spinner_item);
+            if (fileCount > 0) {
+                TextView fileText = (TextView) view.findViewById(R.id.files);
+                fileText.setVisibility(View.VISIBLE);
 
-            adapter5.add(downloadFilesMap);
-            adapter5.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            file.setAdapter(adapter5);
+                file = (Spinner) view.findViewById(R.id.spinner_file);
+                file.setVisibility(View.VISIBLE);
+
+                ArrayAdapter<String> adapter5
+                        = new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_spinner_item);
+
+                Iterator<String> iterator = downloadFilesSet.iterator();
+                while (iterator.hasNext()) {
+                    String fileName = iterator.next();
+                    adapter5.add(fileName);
+                    Log.d(TAG, "Show downloadable file: " + fileName);
+                }
+
+                adapter5.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                file.setAdapter(adapter5);
+            }
         }
     }
 
@@ -243,7 +251,6 @@ public class ClientActivity extends AppCompatActivity {
         TextView typeText = (TextView) view.findViewById(R.id.type);
         TextView levelText = (TextView) view.findViewById(R.id.level);
         TextView payText = (TextView) view.findViewById(R.id.pay);
-        TextView fileText = (TextView) view.findViewById(R.id.files);
 
         Button dateBt = (Button) view.findViewById(R.id.due_date);
 
@@ -252,7 +259,6 @@ public class ClientActivity extends AppCompatActivity {
         typeText.setVisibility(View.VISIBLE);
         levelText.setVisibility(View.VISIBLE);
         payText.setVisibility(View.VISIBLE);
-        fileText.setVisibility(View.VISIBLE);
         dateBt.setVisibility(View.VISIBLE);
     }
 
@@ -309,7 +315,7 @@ public class ClientActivity extends AppCompatActivity {
             curr.put("SUBJECT", (String) request.get("subject"));
             String file = (String) request.get("final_doc_path");
 
-            setDownloadableMap(request, file);
+            //setDownloadableMap(request, file);
             if (applied_requests_set != null) {
                 if (applied_requests_set.contains(id_str))
                     curr.put("IS_APPLIED", "TRUE");
@@ -355,7 +361,7 @@ public class ClientActivity extends AppCompatActivity {
         mExpListView.setVisibility(View.VISIBLE);
     }
 
-    static public HashMap<String, String> getDownloadableFilesMap(int mode) {
+    static public Set<String> getDownloadableFilesSet(int mode) {
         // Get my profiles
         JSONObject myprofile = null;
         myprofile = ProfileManager.getMyInfo(Session.GetInstance());
@@ -369,8 +375,6 @@ public class ClientActivity extends AppCompatActivity {
         Log.d(TAG, "all_worklist: " + all_worklist);
 
         // Get each request information and  Fill the Group/Child data of Expandable ListView
-        ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
-        ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
         StringTokenizer st = new StringTokenizer(all_worklist, ";"); // Parse new request list (ex. all_worklist = ";13;52;1;32")
 
         while (st.hasMoreTokens()) {
@@ -383,19 +387,18 @@ public class ClientActivity extends AppCompatActivity {
             String file;
             if (mode == ProfileManager.USER_MODE.REQUESTER) {
                 file = (String) request.get("final_doc_path");
-                setDownloadableMap(request, file);
+                setDownloadableMap(file);
             } else {
                 file = (String) request.get("source_doc_path");
-                setDownloadableMap(request, file);
+                setDownloadableMap(file);
 
                 file = (String) request.get("reviewed_doc_path");
-                setDownloadableMap(request, file);
+                setDownloadableMap(file);
             }
-            Log.d(TAG, "Add file to map: " + file);
         }
 
-        if (requesterDownloadableFilesMap != null) {
-            return requesterDownloadableFilesMap;
+        if (downloadableFilesSet != null) {
+            return downloadableFilesSet;
         } else {
             return null;
         }
@@ -414,9 +417,14 @@ public class ClientActivity extends AppCompatActivity {
         }*/
     }
 
-    private static void setDownloadableMap(JSONObject request, String file) {
+    private static void setDownloadableMap(String file) {
+        if (downloadableFilesSet == null) {
+            downloadableFilesSet = new HashSet<String>();
+        }
+
         if (file != null && !file.isEmpty()) {
-            requesterDownloadableFilesMap.put("FILE", (String) request.get("final_doc_path"));
+            downloadableFilesSet.add(file);
+            Log.d(TAG, "Add file to map: " + file);
         }
     }
 
@@ -806,14 +814,14 @@ public class ClientActivity extends AppCompatActivity {
                 dl.setOnClickListener(new Button.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        HashMap<String, String> map = (HashMap<String, String>) file.getSelectedItem();
-                        String file = map.get("FILE");
-                        if (file == null) {
+                        String fileName = (String) file.getSelectedItem();
+
+                        if (fileName == null || fileName.isEmpty()) {
                             Toast.makeText(mContext, "Please select the document", Toast.LENGTH_SHORT);
                             return;
                         }
 
-                        FileHandler.downloadFile(mContext, file);
+                        FileHandler.downloadFile(mContext, fileName);
                     }
                 });
             }
