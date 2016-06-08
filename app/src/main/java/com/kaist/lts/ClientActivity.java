@@ -301,6 +301,9 @@ public class ClientActivity extends AppCompatActivity {
                 Map<String, String> child = new HashMap<String, String>();
                 child.put("ITEM", allowedTerm);
                 child.put("KEY", (String)key);
+                val = val.replace(';',' ');
+                if (((String) key).contains("language"))
+                    val = RequestManager.getLanuageString(Integer.parseInt(val));
                 child.put("DATA", val);
                 children.add(child);
             }

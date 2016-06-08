@@ -28,7 +28,6 @@ public class ItemFilter {
         /* ("id", "password", "first_name", "family_name", "email", "phone", "country", "address", "sex", "birthday", "user_mode",
         "degree", "college", "graduate", "certification", "resume", "account", "worklist", "new_request", "language", "_notified_new_request", "_applied_request") */
         allowedMemberColumn = new HashMap<String, String>();
-        allowedMemberColumn.put("id", "ID");
         allowedMemberColumn.put("first_name", "이름");
         allowedMemberColumn.put("family_name", "성");
         allowedMemberColumn.put("email", "이메일");
@@ -70,13 +69,12 @@ public class ItemFilter {
 
         if (!allowedMemberColumn.containsKey(key))
             return null;
+
         switch(user_mode) {
             case ProfileManager.USER_MODE.REQUESTER:
                 break;
             case ProfileManager.USER_MODE.TRANSLATOR:
             case ProfileManager.USER_MODE.REVIEWER:
-                if (key.equals("translator_candidate_list") || key.equals("reviewer_candidate_list"))
-                    return null;
                 break;
             default:
                 break;

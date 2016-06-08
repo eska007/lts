@@ -61,7 +61,12 @@ public class SelectWorkerActivity extends AppCompatActivity {
         // Get each request information and  Fill the Group/Child data of Expandable ListView
         ArrayList<Map<String, String>> mGroupList = new ArrayList<Map<String, String>>();
         ArrayList<ArrayList<Map<String, String>>> mChildList = new ArrayList<ArrayList<Map<String, String>>>();
-        StringTokenizer st = new StringTokenizer(candidates_id, ";"); // Parse new request list (ex. work_list = ";13;52;1;32")
+        String delimiters = null;
+        if (candidates_id.contains(";"))
+            delimiters = ";";
+        else
+            delimiters = " ";
+        StringTokenizer st = new StringTokenizer(candidates_id, delimiters); // Parse new request list (ex. work_list = ";13;52;1;32")
         int idx = 0;
         while (st.hasMoreTokens()) {
             String id_str = st.nextToken();
@@ -84,6 +89,9 @@ public class SelectWorkerActivity extends AppCompatActivity {
                     continue;
                 Map<String, String> child = new HashMap<String, String>();
                 child.put("ITEM", allowedTerm);
+                val = val.replace(';',' ');
+                if (((String) key).contains("language"))
+                    val = RequestManager.getLanuageString(Integer.parseInt(val));
                 child.put("DATA", val);
                 children.add(child);
             }

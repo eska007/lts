@@ -28,6 +28,17 @@ public class RequestManager {
         }
     }
 
+    public static String getLanuageString(int idx) {
+        switch(idx) {
+            case LANGUAGE.KOREAN: return "korean";
+            case LANGUAGE.ENGLISH: return "english";
+            case LANGUAGE.CHINESE: return "chinese";
+            case LANGUAGE.JAPANESE: return "japanese";
+            default:
+                return "Unknown";
+        }
+    }
+
     public static int addNewRequest(ISession cs, JSONObject input) {
         //JSONObject input = new JSONObject();
         input.put("command", "ADD_NEW_REQUEST");

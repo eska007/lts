@@ -46,7 +46,7 @@
         android:layout_gravity="center_vertical"
         android:baselineAligned="false"
         android:focusable="false"
-        android:visibility="visible"
+        android:visibility="gone"
         android:text="Select"
         android:textSize="10dp"
         android:textColor="#000000" />
