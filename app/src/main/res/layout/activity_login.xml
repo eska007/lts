@@ -23,7 +23,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:hint="Enter ID"
-        android:text="req1" />
+        android:text="tra1" />
 
     <EditText
         android:id="@+id/login_pw"

@@ -80,16 +80,34 @@ public class ClientActivity extends AppCompatActivity {
     static private Spinner payment;
     static private Spinner lang;
     static private Spinner file;
+    static private Spinner subject;
     static private String dueDate;
     static private String selectedFilePath;
     static private TextView subjectEdit;
     static private PowerManager.WakeLock wakeLock;
     static private ProgressDialog dialog;
     static private Set<String> downloadableFilesSet;
+    static private Set<String> subjectListSet;
+    static private Map<String, String> workListMap;
 
-    static private JSONObject mMyprofile = null;
-    static private String upload_file_request_id = null;
-    static private String upload_file_column = null;
+    static private TextView langText;
+    static private TextView typeText;
+    static private TextView levelText;
+    static private TextView payText;
+
+    //static private LinearLayout dateBt;
+    static private Button dateBt;
+    static private Button getBt;
+    static private Button updateBt;
+
+    static private LinearLayout datelay;
+    static private LinearLayout uploadlay;
+    static private LinearLayout attachlay;
+    static private ImageView attachIcon;
+    static private JSONObject myWorkInfo;
+    static private JSONObject mMyprofile;
+    static private String upload_file_request_id;
+    static private String upload_file_column;
 
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
@@ -129,9 +147,12 @@ public class ClientActivity extends AppCompatActivity {
 
     static private void createUploadItems(View view, final Activity ac) {
         Log.d(TAG, "Show upload items");
-        ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
-        if (attachIcon != null) {
+
+        if (attachlay != null) {
+            Log.d(TAG, "Show attach icon");
+            attachlay.setVisibility(View.VISIBLE);
             attachIcon.setVisibility(View.VISIBLE);
+            //ImageView attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
             attachIcon.setOnClickListener(new Button.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -141,10 +162,12 @@ public class ClientActivity extends AppCompatActivity {
             });
         }
 
-        Button uploadButton = (Button) view.findViewById(R.id.upload_button);
-        if (uploadButton != null) {
-            uploadButton.setVisibility(View.VISIBLE);
-            uploadButton.setOnClickListener(new Button.OnClickListener() {
+        if (uploadlay != null) {
+            Log.d(TAG, "Show upload button");
+
+            uploadlay.setVisibility(View.VISIBLE);
+            updateBt.setVisibility(View.VISIBLE);
+            updateBt.setOnClickListener(new Button.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     uploadFile();
@@ -187,6 +210,13 @@ public class ClientActivity extends AppCompatActivity {
 
         //Generate json format
         JSONObject req = new JSONObject();
+        String[] truncatedFilePath = selectedFilePath.split("/");
+        String fileName = truncatedFilePath[truncatedFilePath.length - 1];
+        if (ProfileManager.user_mode == -1) {
+            ProfileManager.getUserMode(Session.GetInstance());
+        }
+
+        if (ProfileManager.user_mode == ProfileManager.USER_MODE.REQUESTER) {
 
         //req.put("id", Login.id);
         req.put("subject", subjectEdit.getText().toString());
@@ -195,15 +225,8 @@ public class ClientActivity extends AppCompatActivity {
         req.put("level", level.getSelectedItem());
         req.put("cost", payment.getSelectedItem());
         req.put("due_date", dueDate);
-        String[] truncatedFilePath = selectedFilePath.split("/");
-        String fileName = truncatedFilePath[truncatedFilePath.length - 1];
 
         //Get user mode from server
-        if (ProfileManager.user_mode == -1) {
-            ProfileManager.getUserMode(Session.GetInstance());
-        }
-
-        if (ProfileManager.user_mode == ProfileManager.USER_MODE.REQUESTER) {
             fileName = "1_" + fileName;
             req.put("source_doc_path", fileName);
         } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.TRANSLATOR) {
@@ -235,7 +258,7 @@ public class ClientActivity extends AppCompatActivity {
     private static void createSpinners(View view) {
 
         type = (Spinner) view.findViewById(R.id.spinner_type);
-        type.setVisibility(View.VISIBLE);
+
         ArrayAdapter adapter1 = ArrayAdapter.createFromResource(mContext, R.array.type, android.R.layout.simple_spinner_item);
         adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         type.setAdapter(adapter1);
@@ -243,23 +266,27 @@ public class ClientActivity extends AppCompatActivity {
 
         //Select type of level
         level = (Spinner) view.findViewById(R.id.spinner_level);
-        level.setVisibility(View.VISIBLE);
+
         ArrayAdapter adapter2 = ArrayAdapter.createFromResource(mContext, R.array.level, android.R.layout.simple_spinner_item);
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         level.setAdapter(adapter2);
 
         payment = (Spinner) view.findViewById(R.id.spinner_pay);
-        payment.setVisibility(View.VISIBLE);
+
         ArrayAdapter adapter3 = ArrayAdapter.createFromResource(mContext, R.array.pay, android.R.layout.simple_spinner_item);
         adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         payment.setAdapter(adapter3);
 
         lang = (Spinner) view.findViewById(R.id.spinner_lang);
-        lang.setVisibility(View.VISIBLE);
+
         ArrayAdapter adapter4 = ArrayAdapter.createFromResource(mContext, R.array.lang, android.R.layout.simple_spinner_item);
         adapter4.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         lang.setAdapter(adapter4);
 
+        createDownloadFileSpinner(view);
+    }
+
+    private static void createDownloadFileSpinner(View view) {
         if (ProfileManager.user_mode == -1) {
             ProfileManager.getUserMode(Session.GetInstance());
         }
@@ -271,49 +298,171 @@ public class ClientActivity extends AppCompatActivity {
             Log.d(TAG, "size: " + fileCount);
 
             if (fileCount > 0) {
+                PlaceholderFragment.createDownloadItems(view);
                 TextView fileText = (TextView) view.findViewById(R.id.files);
                 fileText.setVisibility(View.VISIBLE);
 
                 file = (Spinner) view.findViewById(R.id.spinner_file);
                 file.setVisibility(View.VISIBLE);
 
-                ArrayAdapter<String> adapter5
+                ArrayAdapter<String> adapter
                         = new ArrayAdapter<String>(view.getContext(), android.R.layout.simple_spinner_item);
 
                 Iterator<String> iterator = downloadFilesSet.iterator();
                 while (iterator.hasNext()) {
                     String fileName = iterator.next();
-                    adapter5.add(fileName);
+                    adapter.add(fileName);
                     Log.d(TAG, "Show downloadable file: " + fileName);
                 }
 
-                adapter5.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                file.setAdapter(adapter5);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                file.setAdapter(adapter);
             }
         }
     }
 
-    private static void displayRequestItems(View view) {
-        TextView newText = (TextView) view.findViewById(R.id.new_request);
-        TextView subjectText = (TextView) view.findViewById(R.id.subject);
-        TextView langTest = (TextView) view.findViewById(R.id.lang);
-        TextView typeText = (TextView) view.findViewById(R.id.type);
-        TextView levelText = (TextView) view.findViewById(R.id.level);
-        TextView payText = (TextView) view.findViewById(R.id.pay);
+    private static void createSubjectSpinner(View v) {
+        if (ProfileManager.user_mode == -1) {
+            ProfileManager.getUserMode(Session.GetInstance());
+        }
 
-        Button dateBt = (Button) view.findViewById(R.id.due_date);
+        Set<String> SubjectSet = getSubjectListSet();
 
-        subjectEdit = (EditText) view.findViewById(R.id.subject_desc);
-        subjectEdit.setVisibility(View.VISIBLE);
-        newText.setVisibility(View.VISIBLE);
-        subjectText.setVisibility(View.VISIBLE);
-        langTest.setVisibility(View.VISIBLE);
-        typeText.setVisibility(View.VISIBLE);
-        levelText.setVisibility(View.VISIBLE);
-        payText.setVisibility(View.VISIBLE);
-        dateBt.setVisibility(View.VISIBLE);
+        if (SubjectSet != null) {
+            int subjectCount = SubjectSet.size();
+            Log.d(TAG, "subject count: " + subjectCount);
+
+            if (subjectCount > 0) {
+                Log.d(TAG, "Show subject lists");
+
+                Button bt = (Button) v.findViewById(R.id.get_button);
+
+                if (bt != null) {
+                    bt.setVisibility(View.VISIBLE);
+                    bt.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String lists = (String) subject.getSelectedItem();
+
+                            if (lists == null || lists.isEmpty()) {
+                                Toast.makeText(mContext, "Please select the subject", Toast.LENGTH_SHORT);
+                                return;
+                            }
+                        }
+                    });
+                }
+
+                subject = (Spinner) v.findViewById(R.id.spinner_subject);
+                subject.setVisibility(View.VISIBLE);
+
+                ArrayAdapter<String> adapter
+                        = new ArrayAdapter<String>(v.getContext(), android.R.layout.simple_spinner_item);
+
+                Iterator<String> iterator = SubjectSet.iterator();
+                while (iterator.hasNext()) {
+                    String list = iterator.next();
+                    adapter.add(list);
+                    Log.d(TAG, "Show subject lists: " + list);
+                }
+
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                subject.setAdapter(adapter);
+            }
+        }
     }
 
+    private static void displayRequestItems(View view, final Activity ac) {
+        TextView newText = (TextView) view.findViewById(R.id.new_request);
+        TextView subjectText = (TextView) view.findViewById(R.id.subject);
+        newText.setVisibility(View.VISIBLE);
+        subjectText.setVisibility(View.VISIBLE);
+
+        langText = (TextView) view.findViewById(R.id.lang);
+        typeText = (TextView) view.findViewById(R.id.type);
+        levelText = (TextView) view.findViewById(R.id.level);
+        payText = (TextView) view.findViewById(R.id.pay);
+
+        datelay = (LinearLayout) view.findViewById(R.id.due_date_layout);
+        attachlay = (LinearLayout) view.findViewById(R.id.attach_layout);
+        uploadlay = (LinearLayout) view.findViewById(R.id.upload_layout);
+
+        dateBt = (Button) view.findViewById(R.id.due_date);
+        getBt = (Button) view.findViewById(R.id.get_button);
+        updateBt = (Button) view.findViewById(R.id.upload_button);
+
+        attachIcon = (ImageView) view.findViewById(R.id.attach_icon);
+
+        if (ProfileManager.user_mode == -1) {
+            ProfileManager.getUserMode(Session.GetInstance());
+        }
+
+        switch (ProfileManager.user_mode) {
+            case ProfileManager.USER_MODE.REQUESTER:
+                subjectEdit = (EditText) view.findViewById(R.id.subject_desc);
+                subjectEdit.setVisibility(View.VISIBLE);
+
+                langText.setVisibility(View.VISIBLE);
+                typeText.setVisibility(View.VISIBLE);
+                levelText.setVisibility(View.VISIBLE);
+                payText.setVisibility(View.VISIBLE);
+                datelay.setVisibility(View.VISIBLE);
+                break;
+
+            case ProfileManager.USER_MODE.TRANSLATOR:
+            case ProfileManager.USER_MODE.REVIEWER:
+                createSubjectSpinner(view);
+                //dateBt.setVisibility(View.GONE);
+                datelay.setVisibility(View.GONE);
+                getBt.setVisibility(View.VISIBLE);
+                getBt.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        //Get ID info from hashMap
+                        String str = (String) subject.getSelectedItem();
+                        Log.d(TAG, "Selected Subject: " + str);
+
+                        String ids = workListMap.get(str);
+                        Log.d(TAG, "Selected ID: " + ids);
+
+                        int id = Integer.parseInt(ids);
+                        getSubjectSpecificInfo(id, view, ac);
+                    }
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    static private void getSubjectSpecificInfo(int id, final View v, final Activity ac) {
+        // Get my profiles
+        getMyWorkListInfo();
+
+        if (myWorkInfo == null) {
+            Log.e(TAG, "No response from ProfileManager.getMyInfo");
+            return;
+        }
+        //getBt.setVisibility(View.GONE);
+
+        JSONObject obj = RequestManager.getRequestInfo(Session.GetInstance(), id);
+
+        if (obj != null) {
+            langText.setVisibility(View.VISIBLE);
+            typeText.setVisibility(View.VISIBLE);
+            levelText.setVisibility(View.VISIBLE);
+            payText.setVisibility(View.VISIBLE);
+            datelay.setVisibility(View.VISIBLE);
+            //dateBt.setVisibility(View.VISIBLE);
+            langText.setText("Language : " + obj.get("target_language"));
+            typeText.setText("Type : " + obj.get("doc_type"));
+            levelText.setText("Level : " + obj.get("level"));
+            payText.setText("Payment : " + obj.get("cost"));
+            dateBt.setText("Due to " + obj.get("due_date"));
+
+            createUploadItems(v, ac);
+        }
+    }
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     static private void showRequestList(Activity activity, View view, int user_mode) {
         final Activity ac = activity;
@@ -326,9 +475,9 @@ public class ClientActivity extends AppCompatActivity {
         title2.setVisibility(View.VISIBLE);
 
         // Get my profiles
-        JSONObject myprofile = null;
-        myprofile = ProfileManager.getMyInfo(Session.GetInstance());
-        if (myprofile == null) {
+        getMyWorkListInfo();
+
+        if (myWorkInfo == null) {
             Log.e(TAG, "No response from ProfileManager.getMyInfo");
             return;
         }
@@ -339,12 +488,12 @@ public class ClientActivity extends AppCompatActivity {
             target_column_name = "worklist";
         else
             target_column_name = "new_request";
-        String work_list = (String)myprofile.get(target_column_name);
+        String work_list = (String) myWorkInfo.get(target_column_name);
         Log.d(TAG, target_column_name + ": " + work_list);
 
         Set<String> applied_requests_set = null;
         if (user_mode != ProfileManager.USER_MODE.REQUESTER) {
-            String applied_requests_list=(String) myprofile.get("_applied_request");
+            String applied_requests_list = (String) myWorkInfo.get("_applied_request");
             applied_requests_set = new HashSet<String>();
             Collections.addAll(applied_requests_set, applied_requests_list.split(";"));
             //Log.d(TAG, "_applied_request: " + applied_requests_list);
@@ -352,7 +501,7 @@ public class ClientActivity extends AppCompatActivity {
 
         Set<String> worklist_set = null;
         if (user_mode != ProfileManager.USER_MODE.REQUESTER) {
-            String worklist = (String) myprofile.get("worklist");
+            String worklist = (String) myWorkInfo.get("worklist");
             worklist_set = new HashSet<String>();
             Collections.addAll(worklist_set, worklist.split(";"));
             //Log.d(TAG, "worklist: " + worklist);
@@ -375,6 +524,9 @@ public class ClientActivity extends AppCompatActivity {
             Map<String, String> curr = new HashMap<String, String>();
             curr.put("ID", id_str);
             curr.put("SUBJECT", (String) request.get("subject"));
+
+            setWorkListMap(id_str, request);
+
             String file = (String) request.get("final_doc_path");
             if (file.isEmpty() == false)
                 curr.put("IS_FINISHED", "TRUE");
@@ -432,22 +584,46 @@ public class ClientActivity extends AppCompatActivity {
         mExpListView.setVisibility(View.VISIBLE);
     }
 
+    private static void setWorkListMap(String id, JSONObject obj) {
+        if (obj == null)
+            return;
+
+        if (workListMap == null) {
+            workListMap = new HashMap<String, String>();
+        }
+
+        String str = (String) obj.get("subject");
+
+        if (str != null && !str.isEmpty()) {
+            Log.d(TAG, "Set subject to map: " + str);
+            workListMap.put(str, id);
+        }
+    }
+
+    private static void getMyWorkListInfo() {
+        if (myWorkInfo == null) {
+            myWorkInfo = ProfileManager.getMyInfo(Session.GetInstance());
+        }
+    }
+
     static public Set<String> getDownloadableFilesSet(int mode) {
         // Get my profiles
-        JSONObject myprofile = null;
-        myprofile = ProfileManager.getMyInfo(Session.GetInstance());
-        if (myprofile == null) {
+        getMyWorkListInfo();
+
+        myWorkInfo = ProfileManager.getMyInfo(Session.GetInstance());
+        if (myWorkInfo == null) {
             Log.e(TAG, "No response from ProfileManager.getMyInfo");
             return null;
         }
 
         // Get my all requests list (Include work-done, working, and not-applied requests)
-        String all_worklist = (String) myprofile.get("worklist");
+        String all_worklist = (String) myWorkInfo.get("worklist");
         Log.d(TAG, "all_worklist: " + all_worklist);
 
         // Get each request information and  Fill the Group/Child data of Expandable ListView
         StringTokenizer st = new StringTokenizer(all_worklist, ";"); // Parse new request list (ex. all_worklist = ";13;52;1;32")
 
+        downloadableFilesSet = new HashSet<String>();
         while (st.hasMoreTokens()) {
             String id_str = st.nextToken();
             int id = Integer.parseInt(id_str);
@@ -457,14 +633,12 @@ public class ClientActivity extends AppCompatActivity {
 
             String file;
             if (mode == ProfileManager.USER_MODE.REQUESTER) {
-                file = (String) request.get("final_doc_path");
-                setDownloadableMap(file);
-            } else {
-                file = (String) request.get("source_doc_path");
-                setDownloadableMap(file);
-
-                file = (String) request.get("reviewed_doc_path");
-                setDownloadableMap(file);
+                setSpinnerSet(downloadableFilesSet, (String) request.get("final_doc_path"));
+            } else if (mode == ProfileManager.USER_MODE.TRANSLATOR) {
+                setSpinnerSet(downloadableFilesSet, (String) request.get("source_doc_path"));
+                setSpinnerSet(downloadableFilesSet, (String) request.get("reviewed_doc_path"));
+            } else if (mode == ProfileManager.USER_MODE.REVIEWER) {
+                setSpinnerSet(downloadableFilesSet, (String) request.get("translated_doc_path"));
             }
         }
 
@@ -473,29 +647,52 @@ public class ClientActivity extends AppCompatActivity {
         } else {
             return null;
         }
-/*        if (requesterDownloadableFilesMap != null
-                && mode == ProfileManager.USER_MODE.REQUESTER) {
-            Log.d(TAG, "using:  requesterDownloadableFilesMap");
-            return requesterDownloadableFilesMap;
-        } else if (workerDownloadableFilesMap != null
-                && (mode == ProfileManager.USER_MODE.REVIEWER
-                || mode == ProfileManager.USER_MODE.TRANSLATOR)) {
-            Log.d(TAG, "using: workerDownloadableFilesMap");
-            return workerDownloadableFilesMap;
-        } else {
-            Log.e(TAG, "File Map is NULL!");
-            return null;
-        }*/
     }
 
-    private static void setDownloadableMap(String file) {
-        if (downloadableFilesSet == null) {
-            downloadableFilesSet = new HashSet<String>();
+    static public Set<String> getSubjectListSet() {
+        // Get my profiles
+        getMyWorkListInfo();
+
+        myWorkInfo = ProfileManager.getMyInfo(Session.GetInstance());
+        if (myWorkInfo == null) {
+            Log.e(TAG, "No response from ProfileManager.getMyInfo");
+            return null;
         }
 
-        if (file != null && !file.isEmpty()) {
-            downloadableFilesSet.add(file);
-            Log.d(TAG, "Add file to map: " + file);
+        // Get my all requests list (Include work-done, working, and not-applied requests)
+        String all_worklist = (String) myWorkInfo.get("worklist");
+        Log.d(TAG, "all_worklist: " + all_worklist);
+
+        // Get each request information and  Fill the Group/Child data of Expandable ListView
+        StringTokenizer st = new StringTokenizer(all_worklist, ";"); // Parse new request list (ex. all_worklist = ";13;52;1;32")
+
+        subjectListSet = new HashSet<String>();
+
+        while (st.hasMoreTokens()) {
+            String id_str = st.nextToken();
+            int id = Integer.parseInt(id_str);
+            Log.d(TAG, "id: " + id_str);
+
+            JSONObject request = RequestManager.getRequestInfo(Session.GetInstance(), id);
+
+            String subjectList = (String) request.get("subject");
+            Log.d(TAG, "subject: " + subjectList);
+            setSpinnerSet(subjectListSet, subjectList);
+        }
+
+        if (subjectListSet != null) {
+            return subjectListSet;
+        } else {
+            Log.e(TAG, "subjectListSet is null");
+            return null;
+        }
+    }
+
+    private static void setSpinnerSet(Set<String> key, String val) {
+
+        if (key != null && !val.isEmpty()) {
+            key.add(val);
+            Log.d(TAG, "Add to Set: " + val);
         }
     }
 
@@ -708,10 +905,10 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     public static class customExpandableListAdapter extends SimpleExpandableListAdapter {
+        static HashSet<String> all_doc_path = null;
         final List<? extends List<? extends Map<String, ?>>> mChildData;
         final private ExpandableListView mExpListView;
         final private int mUserMode;
-        static HashSet<String> all_doc_path = null;
 
         public customExpandableListAdapter(Context context,
                                     List<? extends Map<String, ?>> groupData, int groupLayout,
@@ -1064,12 +1261,31 @@ public class ClientActivity extends AppCompatActivity {
         static public void showRequestItems(Activity activity, View view) {
             final Activity ac = activity;
             //Display all the view of new request
-            displayRequestItems(view);
+            displayRequestItems(view, ac);
 
             createSpinners(view);
             createDateSelector(view);
-            createUploadItems(view, ac);
-            createDownloadItems(view);
+
+            if (ProfileManager.user_mode == -1) {
+                ProfileManager.getUserMode(Session.GetInstance());
+            }
+
+            switch (ProfileManager.user_mode) {
+                case ProfileManager.USER_MODE.REQUESTER:
+                    type.setVisibility(View.VISIBLE);
+                    level.setVisibility(View.VISIBLE);
+                    payment.setVisibility(View.VISIBLE);
+                    lang.setVisibility(View.VISIBLE);
+
+                    createUploadItems(view, ac);
+                    break;
+                case ProfileManager.USER_MODE.TRANSLATOR:
+                case ProfileManager.USER_MODE.REVIEWER:
+                    break;
+                default:
+                    break;
+            }
+
             //Listview
 /*                ArrayAdapter<String> adapter2 = new ArrayAdapter<String> (mContext, android.R.layout.simple_list_item_1, paymentList);
                 Spinner pay = (Spinner) view.findViewById(R.id.spinner_pay);
