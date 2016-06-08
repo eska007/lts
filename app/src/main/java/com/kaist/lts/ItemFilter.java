@@ -24,6 +24,12 @@ public class ItemFilter {
         allowedRequestColumn.put("reviewer_candidate_list", "감수자후보");
         allowedRequestColumn.put("translator_id", "번역가");
         allowedRequestColumn.put("reviewer_id", "감수자");
+        allowedRequestColumn.put("requester_id", "의뢰자");
+
+        allowedRequestColumn.put("source_doc_path", "원본자료");
+        allowedRequestColumn.put("translated_doc_path", "중간번역자료");
+        allowedRequestColumn.put("reviewed_doc_path", "감수자료");
+        allowedRequestColumn.put("final_doc_path", "최종번역자료");
 
         /* ("id", "password", "first_name", "family_name", "email", "phone", "country", "address", "sex", "birthday", "user_mode",
         "degree", "college", "graduate", "certification", "resume", "account", "worklist", "new_request", "language", "_notified_new_request", "_applied_request") */
@@ -48,12 +54,14 @@ public class ItemFilter {
             return null;
         switch(user_mode) {
             case ProfileManager.USER_MODE.REQUESTER:
-                if(key.equals("degree") || key.equals("college")
-                        || key.equals("language") || key.equals("graduate"))
+                if(key.equals("translated_doc_path")
+                        || key.equals("reviewed_doc_path"))
                     return null;
-                break;
             case ProfileManager.USER_MODE.TRANSLATOR:
+                break;
             case ProfileManager.USER_MODE.REVIEWER:
+                if(key.equals("final_doc_path"))
+                    return null;
                 break;
             default:
                 break;

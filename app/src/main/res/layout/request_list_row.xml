@@ -24,6 +24,7 @@
         android:layout_margin="1dp"
         android:background="#d9efff"
         android:paddingLeft="5dp"
+        android:gravity="center_vertical"
         android:textColor="#000000" />
 
     <Button

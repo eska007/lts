@@ -29,10 +29,12 @@ import java.util.StringTokenizer;
 public class SelectWorkerActivity extends AppCompatActivity {
     static final String TAG = "[LTS][SelWorker]";
     private int mRequest_id = -1;
+    private Context mContext = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
         setContentView(R.layout.activity_select_worker);
         int user_mode = ProfileManager.getUserMode(Session.GetInstance());
         Intent intent = getIntent();
@@ -88,6 +90,7 @@ public class SelectWorkerActivity extends AppCompatActivity {
                 if (allowedTerm == null) // Filtering
                     continue;
                 Map<String, String> child = new HashMap<String, String>();
+                child.put("ITEM_ORG", (String)key);
                 child.put("ITEM", allowedTerm);
                 val = val.replace(';',' ');
                 if (((String) key).contains("language"))
@@ -153,6 +156,45 @@ public class SelectWorkerActivity extends AppCompatActivity {
 
             enableButton(select_btn, "Select");
             select_btn.setVisibility(View.VISIBLE);
+            return view;
+        }
+
+        public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
+                                 View convertView, ViewGroup parent) {
+            View view = super.getChildView(groupPosition, childPosition, isLastChild, convertView, parent);
+            if (mUserMode == ProfileManager.USER_MODE.REVIEWER)
+                return view;
+
+            // Show View Button If it's cnadidate's worklist
+            // Only for Requester and Translator
+            Map<String, String> childdata = (Map<String, String>) super.getChild(groupPosition, childPosition);
+            final Button select_btn = (Button) view.findViewById(R.id.select_worker_btn);
+            String target = "worklist";
+
+            if (false == childdata.get("ITEM_ORG").equals(target) || childdata.get("DATA").isEmpty()) {
+                select_btn.setVisibility(View.GONE);
+            } else {
+                // If this group has worker_id , disable Button;
+                enableButton(select_btn, "View detail");
+                ExpandableListAdapter ad = mExpListView.getExpandableListAdapter();
+                Map<String, String> groupdata = (Map<String, String>) ad.getGroup(groupPosition);
+                //select_btn.setTag(groupdata.get("ID")); // Member id
+                select_btn.setTag(R.id.select_worker_btn, childdata.get("DATA")); // worklist
+                select_btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d(TAG, "ViewBtn onClick, Show Worklist Diaglog");
+                        // Show candidates list on Dialog  , String candidates = view.getTag();
+                        Intent intent = new Intent();
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra("worklist", (String)view.getTag(R.id.select_worker_btn));
+                        //intent.putExtra("request_id", (String)view.getTag());
+                        intent.setClassName(AccessManager.LTS_PACKAGE_NAME, AccessManager.WORKLISTV_CLASS_NAME);
+                        mContext.startActivity(intent);
+                    }
+                });
+                select_btn.setVisibility(View.VISIBLE);
+            }
             return view;
         }
 

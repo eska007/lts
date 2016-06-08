@@ -55,7 +55,8 @@
         <activity android:name=".Registration" />
         <activity android:name=".SelectRegistration" />
         <activity android:name=".Login" />
-        <activity android:name=".SelectWorkerActivity"></activity>
+        <activity android:name=".SelectWorkerActivity" />
+        <activity android:name=".WorklistViewer"></activity>
     </application>
 
 </manifest>

@@ -153,7 +153,7 @@ public class Session implements ISession{
             String line;
             received_data = new String();
             while((line = rd.readLine()) != null){
-                System.out.println("return1 : " + line);
+                Log.d(TAG, "return1 : " + line);
                 received_data += line;
             }
 
@@ -162,6 +162,11 @@ public class Session implements ISession{
             JSONObject obj = (JSONObject) jsonParser.parse(received_data);
             //// deep copy the json data
             Iterator<Object> itr = obj.keySet().iterator();
+            if (itr == null) {
+                Log.e(TAG, "return2 : " + output.toString());
+                return ISession.RetVal.RET_FAIL;
+            }
+
             while(itr.hasNext()) {
                 Object key = itr.next();
                 Object val = obj.get(key);

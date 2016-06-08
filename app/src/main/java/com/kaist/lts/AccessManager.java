@@ -16,6 +16,7 @@ public class AccessManager {
     static final String SELREG_CLASS_NAME = "com.kaist.lts.SelectRegistration";
     static final String LOGIN_CLASS_NAME = "com.kaist.lts.Login";
     static final String SELWKR_CLASS_NAME = "com.kaist.lts.SelectWorkerActivity";
+    static final String WORKLISTV_CLASS_NAME = "com.kaist.lts.WorklistViewer";
 
     private static AccessManager am;
     final String TAG = "[LTS][AccessManager]";

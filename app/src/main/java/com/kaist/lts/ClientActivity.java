@@ -23,6 +23,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.ArraySet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -81,6 +82,9 @@ public class ClientActivity extends AppCompatActivity {
     static private PowerManager.WakeLock wakeLock;
     static private ProgressDialog dialog;
     static private Set<String> downloadableFilesSet;
+
+    static private JSONObject mMyprofile = null;
+
     private final int TOTAL_VIEW_PAGE_NUMBER = 3;
     /**
      * The {@link PagerAdapter} that will provide
@@ -289,13 +293,20 @@ public class ClientActivity extends AppCompatActivity {
         String work_list = (String)myprofile.get(target_column_name);
         Log.d(TAG, target_column_name + ": " + work_list);
 
-        // Get not-applied requests (
         Set<String> applied_requests_set = null;
         if (user_mode != ProfileManager.USER_MODE.REQUESTER) {
             String applied_requests_list=(String) myprofile.get("_applied_request");
             applied_requests_set = new HashSet<String>();
             Collections.addAll(applied_requests_set, applied_requests_list.split(";"));
-            Log.d(TAG, "_applied_request: " + applied_requests_list);
+            //Log.d(TAG, "_applied_request: " + applied_requests_list);
+        }
+
+        Set<String> worklist_set = null;
+        if (user_mode != ProfileManager.USER_MODE.REQUESTER) {
+            String worklist = (String) myprofile.get("worklist");
+            worklist_set = new HashSet<String>();
+            Collections.addAll(worklist_set, worklist.split(";"));
+            //Log.d(TAG, "worklist: " + worklist);
         }
 
         // Get each request information and  Fill the Group/Child data of Expandable ListView
@@ -317,11 +328,18 @@ public class ClientActivity extends AppCompatActivity {
 
             //setDownloadableMap(request, file);
             if (applied_requests_set != null) {
-                if (applied_requests_set.contains(id_str))
+                if (applied_requests_set.contains(id_str)) {
                     curr.put("IS_APPLIED", "TRUE");
-                else
+                } else {
                     curr.put("IS_APPLIED", "FALSE");
+                }
             }
+
+            if (worklist_set != null && worklist_set.contains(id_str))
+                curr.put("IS_EMPLOYED", "TRUE");
+            else
+                curr.put("IS_EMPLOYED", "FALSE");
+
             mGroupList.add(curr);
 
             ArrayList<Map<String, String>> children = new ArrayList<Map<String, String>>();
@@ -434,6 +452,10 @@ public class ClientActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate");
         mContext = this;
         super.onCreate(savedInstanceState);
+
+        if (mMyprofile == null) {
+            Log.e(TAG, "No response from ProfileManager.getMyInfo");
+        }
 
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy =
@@ -624,7 +646,7 @@ public class ClientActivity extends AppCompatActivity {
         final List<? extends List<? extends Map<String, ?>>> mChildData;
         final private ExpandableListView mExpListView;
         final private int mUserMode;
-
+        static ArraySet<String> all_doc_path = null;
 
         public customExpandableListAdapter(Context context,
                                     List<? extends Map<String, ?>> groupData, int groupLayout,
@@ -655,8 +677,11 @@ public class ClientActivity extends AppCompatActivity {
             Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
             final Button apply_btn = (Button) view.findViewById(R.id.request_apply_btn);
             if (groupdata.get("IS_APPLIED").equals("TRUE")) {
-                Log.d(TAG, "IS_APPLIED = TRUE");
-                disableButton(apply_btn, "Applied");
+                //Log.d(TAG, "IS_APPLIED = TRUE");
+                if (groupdata.get("IS_EMPLOYED").equals("TRUE"))
+                    disableButton(apply_btn, "Employed");
+                else
+                    disableButton(apply_btn, "Applied");
             } else {
                 enableButton(apply_btn, "Apply");
                 apply_btn.setOnClickListener(new View.OnClickListener() {
@@ -686,26 +711,47 @@ public class ClientActivity extends AppCompatActivity {
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
                                  View convertView, ViewGroup parent) {
             View view = super.getChildView(groupPosition, childPosition, isLastChild, convertView, parent);
-            if (mUserMode == ProfileManager.USER_MODE.REVIEWER)
-                return view;
 
             // Show Select Button If it's candidates list
             // Only for Requester and Translator
             Map<String, String> childdata = (Map<String, String>) super.getChild(groupPosition, childPosition);
+            CheckSelectBtn(view, childdata, groupPosition, childPosition);
+            CheckDownloadBtn(view, childdata, groupPosition, childPosition);
+            CheckUploadBtn(view, childdata, groupPosition, childPosition);
+            return view;
+        }
+
+        private String getAnotherChildData(String target, int groupPosition) {
+            List<Map<String, String>> children = (List<Map<String, String>>)mChildData.get(groupPosition);
+            Iterator<Map<String, String>> itr = children.iterator();
+            while (itr.hasNext()) {
+                Map<String, String> key = itr.next();
+                if (key.get("KEY").equals(target)) {
+                    return key.get("DATA");
+                }
+            }
+            return null;
+        }
+
+        private void CheckSelectBtn(View view, Map<String, String> childdata, int groupPosition, int childPosition) {
             final Button select_btn = (Button) view.findViewById(R.id.select_worker_btn);
             String target, target2;
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
                 target = "translator_candidate_list";
                 target2 = "translator_id";
-            }else {// if current user is translator
+            }else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
                 target = "reviewer_candidate_list";
                 target2 = "reviewer_id";
+            }else {
+                select_btn.setVisibility(View.GONE);
+                return;
             }
 
             if (false == childdata.get("KEY").equals(target) || childdata.get("DATA").isEmpty()) {
-                select_btn.setVisibility(View.INVISIBLE);
+                select_btn.setVisibility(View.GONE);
             } else {
                 // If this group has worker_id , disable Button;
+                /*
                 List<Map<String, String>> children = (List<Map<String, String>>)mChildData.get(groupPosition);
                 Iterator<Map<String, String>> itr = children.iterator();
                 boolean isSelected = false;
@@ -717,8 +763,10 @@ public class ClientActivity extends AppCompatActivity {
                         break;
                     }
                 }
+                */
 
-                if (isSelected) {
+                String worker_id = getAnotherChildData(target2, groupPosition);
+                if (worker_id != null && false == worker_id.isEmpty()) {
                     disableButton(select_btn, "Selected");
                 } else {
                     enableButton(select_btn, "Select Worker");
@@ -742,14 +790,125 @@ public class ClientActivity extends AppCompatActivity {
                     select_btn.setVisibility(View.VISIBLE);
                 }
             }
-            return view;
         }
 
+        @TargetApi(Build.VERSION_CODES.M)
+        private void CheckDownloadBtn(View view, Map<String, String> childdata, int groupPosition, int childPosition) {
+            final Button download_btn = (Button) view.findViewById(R.id.download_btn);
+
+            String worker_id = null;
+            if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
+                worker_id = getAnotherChildData("requester_id", groupPosition);
+            }else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
+                worker_id = getAnotherChildData("translator_id", groupPosition);
+            }else {
+                worker_id = getAnotherChildData("reviewer_id", groupPosition);
+            }
+
+            String myid = (mMyprofile != null ? (String)(mMyprofile.get("id")) : null);
+            if (worker_id == null || myid == null || worker_id.equals(myid)==false) { // TODO: Only If I involved to this work.
+                download_btn.setVisibility(View.GONE);
+                return;
+            }
+
+            if (all_doc_path == null) {
+                all_doc_path = new ArraySet<String>();
+                all_doc_path.add("source_doc_path");
+                all_doc_path.add("translated_doc_path");
+                all_doc_path.add("reviewed_doc_path");
+                all_doc_path.add("final_doc_path");
+            }
+            
+            if (false == all_doc_path.contains(childdata.get("KEY"))
+                || true == childdata.get("DATA").isEmpty()) {
+                download_btn.setVisibility(View.GONE);
+                return;
+            }
+            
+            enableButton(download_btn, "Download");
+            download_btn.setTag(childdata.get("DATA")); // Download path
+            download_btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.d(TAG, "Download onClick");
+                    // TODO: Downlad this path(= (String)view.getTag());
+                }
+            });
+            download_btn.setVisibility(View.VISIBLE);
+        }
+
+        @TargetApi(Build.VERSION_CODES.M)
+        private void CheckUploadBtn(View view, Map<String, String> childdata, int groupPosition, int childPosition) {
+            final Button upload_btn = (Button) view.findViewById(R.id.upload_btn);
+
+            String worker_id = null;
+            if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
+                worker_id = getAnotherChildData("requester_id", groupPosition);
+            }else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
+                worker_id = getAnotherChildData("translator_id", groupPosition);
+            }else {
+                worker_id = getAnotherChildData("reviewer_id", groupPosition);
+            }
+
+            String myid = (mMyprofile != null ? (String)(mMyprofile.get("id")) : null);
+            if (worker_id == null || myid == null || worker_id.equals(myid)==false) { // TODO: Only If I involved to this work.
+                upload_btn.setVisibility(View.GONE);
+                return;
+            }
+
+            if (all_doc_path == null) {
+                all_doc_path = new ArraySet<String>();
+                all_doc_path.add("source_doc_path");
+                all_doc_path.add("translated_doc_path");
+                all_doc_path.add("reviewed_doc_path");
+                all_doc_path.add("final_doc_path");
+            }
+
+            if (false == all_doc_path.contains(childdata.get("KEY"))
+                    || false == childdata.get("DATA").isEmpty()) {
+                upload_btn.setVisibility(View.GONE);
+                return;
+            }
+
+            switch(mUserMode) {
+                case ProfileManager.USER_MODE.REQUESTER:
+                    if (false == childdata.get("KEY").equals("source_doc_path"))
+                        return;
+                    break;
+                case ProfileManager.USER_MODE.TRANSLATOR:
+                    if (false == childdata.get("KEY").equals("translated_doc_path")
+                        && false == childdata.get("KEY").equals("final_doc_path"))
+                        return;
+                    break;
+                case ProfileManager.USER_MODE.REVIEWER:
+                    if (false == childdata.get("KEY").equals("reviewed_doc_path"))
+                        return;
+                    break;
+                default:
+                    break;
+            }
+
+            enableButton(upload_btn, "Upload");
+            upload_btn.setTag(childdata.get("DATA")); // Download path
+            upload_btn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.d(TAG, "Upload onClick");
+                    if (false /*TODO: Upload data.*/)
+                        upload_btn.setVisibility(View.GONE);
+                }
+            });
+            upload_btn.setVisibility(View.VISIBLE);
+        }
+        
         private void disableButton(final Button btn, String text) {
             btn.setText(text);
             btn.setOnClickListener(null);
             btn.setClickable(false);
-            btn.setBackgroundColor(0xFF9AF0E5);
+            if (text.equals("Employed"))
+                btn.setBackgroundColor(0xFF5167D6);
+            else
+                btn.setBackgroundColor(0xFF9AF0E5);
         }
 
         private void enableButton(final Button btn, String text) {
@@ -859,6 +1018,8 @@ public class ClientActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             Log.d(TAG, "onCreateView");
 
+            if (mMyprofile == null)
+                mMyprofile = ProfileManager.getMyInfo(Session.GetInstance());
             View rootView = inflater.inflate(R.layout.fragment_client, container, false);
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
             int user_mode = ProfileManager.getUserMode(Session.GetInstance());
