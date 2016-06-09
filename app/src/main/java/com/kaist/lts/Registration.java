@@ -85,7 +85,7 @@ public class Registration extends AppCompatActivity {
                 final String address = addressEt.getText().toString();
 
 
-                if (!Login.id.isEmpty()) {
+                if (Login.id != null && !Login.id.isEmpty()) {
                     if (name.isEmpty() || surname.isEmpty()
                             || phone.isEmpty() || email.isEmpty() || country.isEmpty() || address.isEmpty()) {
                         Toast.makeText(mConext, "Please fill out all items", Toast.LENGTH_SHORT);
