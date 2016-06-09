@@ -535,6 +535,10 @@ public class ClientActivity extends AppCompatActivity {
             if (file.isEmpty() == false)
                 curr.put("IS_FINISHED", "TRUE");
 
+            String translator_score = (String) request.get("translator_score");
+            if (Integer.parseInt(translator_score) != 0)
+                curr.put("IS_EVALUATED", "TRUE");
+
             //setDownloadableMap(request, file);
             if (applied_requests_set != null) {
                 if (applied_requests_set.contains(id_str)) {
@@ -933,12 +937,7 @@ public class ClientActivity extends AppCompatActivity {
             View view = super.getGroupView(groupPosition, isExpanded, convertView, parent);
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
                 TextView tview = (TextView)view.findViewById(R.id.req_list_item_desc);
-                if (showEvaluationBtn(view, groupPosition)) {
-                    tview.setLayoutParams(new LinearLayout.LayoutParams(300, 40));
-                }else {
-                    tview.setLayoutParams(new LinearLayout.LayoutParams
-                            (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-                }
+                showEvaluationBtn(view, groupPosition);
                 return view;
             }
             checkApplyBtn(view, groupPosition);
@@ -948,19 +947,40 @@ public class ClientActivity extends AppCompatActivity {
         private boolean showEvaluationBtn(View view, int groupPosition) {
             final Button evaluate_btn = (Button) view.findViewById(R.id.request_evaluation_btn);
 
-            Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
+            final Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
             if (groupdata.get("IS_FINISHED") == null) {
-                disableButton(evaluate_btn, "Evaluate");
-                evaluate_btn.setVisibility(View.GONE);
+                disableButton(evaluate_btn, "In progress");
+                evaluate_btn.setVisibility(View.VISIBLE);
                 return false;
             }
 
+            if (groupdata.get("IS_EVALUATED") != null) {
+                disableButton(evaluate_btn, "Evaluated");
+                evaluate_btn.setVisibility(View.VISIBLE);
+                return false;
+            }
+
+            final String request_id = groupdata.get("ID");
             evaluate_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Log.d(TAG, "evaluate_btn onClick");
-                    // TODO: Evaluate
-                    //new Notifier(Notifier.Command.RESULT_OF_BID, request_id, mContext);
+                    final CharSequence[] items = {"1점", "2점", "3점", "4점", "5점"};
+                    final AlertDialog.Builder  builder = new AlertDialog.Builder(mContext);
+                    builder.setTitle("Evaluation");
+                    builder.setItems(items,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    Log.d(TAG, "Dialog clicked, ID: " + Integer.toString(id));
+                                    RequestManager.Evaluation(Session.GetInstance(), Integer.parseInt(request_id), id+1);
+                                    disableButton(evaluate_btn, "Evaluated");
+                                    dialog.dismiss();
+                                }
+                            });
+                    AlertDialog d = builder.create();
+                    d.show();
+                    d.setOwnerActivity(mActivity);
+                    d.setCanceledOnTouchOutside(true);
                 }
             });
             evaluate_btn.setVisibility(View.VISIBLE);
@@ -1222,6 +1242,8 @@ public class ClientActivity extends AppCompatActivity {
             btn.setClickable(false);
             if (text.equals("Employed"))
                 btn.setBackgroundColor(0xFF5167D6);
+            else if (text.equals("Evaluated"))
+                btn.setBackgroundColor(0xFF5147D6);
             else
                 btn.setBackgroundColor(0xFF9AF0E5);
         }

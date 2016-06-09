@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS `workitems` (
   `subject` text NOT NULL,
   `id` int(11) NOT NULL,
   `doc_type` text NOT NULL,
-  `source_language` text NOT NULL,
-  `target_language` text NOT NULL,
+  `source_language` int(11) NOT NULL,
+  `target_language` int(11) NOT NULL,
   `pages` text NOT NULL,
   `level` text NOT NULL,
   `biding` tinyint(1) NOT NULL,
@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS `workitems` (
   `translated_doc_path` text NOT NULL,
   `reviewed_doc_path` text NOT NULL,
   `final_doc_path` text NOT NULL,
+  `translator_score` int(11) NOT NULL,
+  `reviewer_score` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -56,9 +58,9 @@ CREATE TABLE IF NOT EXISTS `workitems` (
 -- 테이블의 덤프 데이터 `workitems`
 --
 
-INSERT INTO `workitems` (`subject`, `id`, `doc_type`, `source_language`, `target_language`, `pages`, `level`, `biding`, `cost`, `is_paid`, `is_reviewed`, `source_doc_path`, `request_date`, `due_date`, `requester_id`, `translator_candidate_list`, `reviewer_candidate_list`, `translator_id`, `reviewer_id`, `translated_doc_path`, `reviewed_doc_path`, `final_doc_path`) VALUES
-('SE텍스트북', 1, 'Book', 'English', 'korean', '900', '3', 0, '5000$', 0, 0, 'se_textbook.txt', '2016-06-04 07:44:00', '2016-07-04 07:44:00', 'req1', '', '', '', '', '', '', ''),
-('무역계약서', 2, 'Contract', 'english', 'Korean', '5', '1', 0, '10$', 0, 0, 'contract1.txt', '2016-06-08 02:44:00', '2016-06-10 07:44:00', 'req1', '', '', '', '', '2_IMG_8647.JPG', '', '');
+INSERT INTO `workitems` (`subject`, `id`, `doc_type`, `source_language`, `target_language`, `pages`, `level`, `biding`, `cost`, `is_paid`, `is_reviewed`, `source_doc_path`, `request_date`, `due_date`, `requester_id`, `translator_candidate_list`, `reviewer_candidate_list`, `translator_id`, `reviewer_id`, `translated_doc_path`, `reviewed_doc_path`, `final_doc_path`, `translator_score`, `reviewer_score`) VALUES
+('SE텍스트북', 1, 'Book', 1, 0, '900', '3', 0, '5000$', 0, 0, 'se_textbook.txt', '2016-06-04 07:44:00', '2016-07-04 07:44:00', 'req1', '', '', '', '', '', '', '', 0, 0),
+('무역계약서', 2, 'Contract', 1, 0, '5', '1', 0, '10$', 0, 0, 'contract1.txt', '2016-06-08 02:44:00', '2016-06-10 07:44:00', 'req1', '', '', '', '', '2_IMG_8647.JPG', '', '', 0, 0);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

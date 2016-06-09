@@ -7,7 +7,7 @@
     <LinearLayout
         android:id="@+id/detail_req_list"
         android:orientation="horizontal"
-        android:layout_width="300dp"
+        android:layout_width="360dp"
         android:layout_height="wrap_content">
 
         <TextView

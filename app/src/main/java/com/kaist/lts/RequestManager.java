@@ -109,6 +109,20 @@ public class RequestManager {
         return true;
     }
 
+    public static boolean Evaluation(ISession cs, int request_id, int score) {
+        JSONObject input = new JSONObject();
+        input.put("command", "EVALUATION");
+        input.put("id",  request_id);
+        input.put("score",  score);
+
+        JSONObject output = new JSONObject();
+        ISession.RetVal ret = cs.SendRequest(input, output);
+        if (ret != ISession.RetVal.RET_OK)
+            return false;
+        Log.d(TAG, "EVALUATION result : " + ret + ", output : " + output.toString());
+        return true;
+    }
+
     public static String getResultOfBid(ISession cs, int request_id) {
         JSONObject input = new JSONObject();
         input.put("command", "GET_RESULT_OF_BID");

@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS `members` (
   `language` int(11) NOT NULL,
   `_notified_new_request` text NOT NULL COMMENT '이 멤버에게 전달된 리퀘스트들 중 모바일앱 통해 알림 전달이 완료된 것들.',
   `_applied_request` text NOT NULL COMMENT '전달된 리퀘스트들 중 지원(bid)했던 리퀘스트들',
+  `score` float NOT NULL,
+  `score_count` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='member profiles';
 
@@ -56,16 +58,16 @@ CREATE TABLE IF NOT EXISTS `members` (
 -- 테이블의 덤프 데이터 `members`
 --
 
-INSERT INTO `members` (`id`, `password`, `first_name`, `family_name`, `email`, `phone`, `country`, `address`, `sex`, `birthday`, `user_mode`, `degree`, `college`, `graduate`, `certification`, `resume`, `account`, `worklist`, `new_request`, `language`, `_notified_new_request`, `_applied_request`) VALUES
-('req1', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '의뢰', '김', 'kim@naver.com', '', '', '', 0, '1923-12-01', 0, '', '', '', '', '', '', ';1;2', '0', 0, '0', ''),
-('rev1', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '감수', '박', 'park@naver.com', '', '', '', 0, '2001-02-29', 2, '', '', '', '', '', '', '', '', 1, '', ''),
-('tra1', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '번역', '홍', 'hong@naver.com', '', '', '', 0, '1980-01-01', 1, '', '', '', '', '', '', '', ';1;2', 1, '', ''),
-('req2', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '의뢰인', '김', 'kim2@naver.com', '', '', '', 0, '1923-12-01', 0, '', '', '', '', '', '', '', '0', 0, '0', ''),
-('rev2', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '감수자', '이', 'park2@naver.com', '', '', '', 0, '2001-02-29', 2, '', '', '', '', '', '', '', '', 1, '', ''),
-('tra2', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '번역가', '왕', 'hong2@naver.com', '', '', '', 0, '1980-01-01', 1, '', '', '', '', '', '', '', ';1;2', 1, '', ''),
-('req3', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '의뢰3', '김', 'kim3@naver.com', '', '', '', 0, '1923-12-01', 0, '', '', '', '', '', '', '', '0', 0, '0', ''),
-('rev3', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '감수3', '박', 'park3@naver.com', '', '', '', 0, '2001-02-29', 2, '', '', '', '', '', '', '', '', 2, '', ''),
-('tra3', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '번역3', '홍', 'hong3@naver.com', '', '', '', 0, '1980-01-01', 1, '', '', '', '', '', '', '', '', 2, '', '');
+INSERT INTO `members` (`id`, `password`, `first_name`, `family_name`, `email`, `phone`, `country`, `address`, `sex`, `birthday`, `user_mode`, `degree`, `college`, `graduate`, `certification`, `resume`, `account`, `worklist`, `new_request`, `language`, `_notified_new_request`, `_applied_request`, `score`, `score_count`) VALUES
+('req1', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '의뢰', '김', 'kim@naver.com', '', '', '', 0, '1923-12-01', 0, '', '', '', '', '', '', ';1;2', '0', 0, '0', '', 0, 0),
+('rev1', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '감수', '박', 'park@naver.com', '', '', '', 0, '2001-02-29', 2, '', '', '', '', '', '', '', '', 1, '', '', 0, 0),
+('tra1', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '번역', '홍', 'hong@naver.com', '', '', '', 0, '1980-01-01', 1, '', '', '', '', '', '', '', ';1;2', 1, '', '', 0, 0),
+('req2', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '의뢰인', '김', 'kim2@naver.com', '', '', '', 0, '1923-12-01', 0, '', '', '', '', '', '', '', '0', 0, '0', '', 0, 0),
+('rev2', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '감수자', '이', 'park2@naver.com', '', '', '', 0, '2001-02-29', 2, '', '', '', '', '', '', '', '', 1, '', '', 0, 0),
+('tra2', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '번역가', '왕', 'hong2@naver.com', '', '', '', 0, '1980-01-01', 1, '', '', '', '', '', '', '', ';1;2', 1, '', '', 0, 0),
+('req3', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '의뢰3', '김', 'kim3@naver.com', '', '', '', 0, '1923-12-01', 0, '', '', '', '', '', '', '', '0', 0, '0', '', 0, 0),
+('rev3', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '감수3', '박', 'park3@naver.com', '', '', '', 0, '2001-02-29', 2, '', '', '', '', '', '', '', '', 2, '', '', 0, 0),
+('tra3', '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', '번역3', '홍', 'hong3@naver.com', '', '', '', 0, '1980-01-01', 1, '', '', '', '', '', '', '', '', 2, '', '', 0, 0);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
