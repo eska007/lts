@@ -142,13 +142,17 @@ public class ClientActivity extends AppCompatActivity {
             upload_file_request_id = new String(request_id); // intent.putExtra("request_id", request_id);
         if (column != null)
             upload_file_column = new String(column); // intent.putExtra("column", column);
-        Log.d(TAG, "request_id: "+upload_file_request_id+", column:"+upload_file_column);
+        Log.d(TAG, "request_id: " + upload_file_request_id + ", column:" + upload_file_column);
         //starts new activity to select file and return data
         activity.startActivityForResult(Intent.createChooser(intent, "Choose File to Upload.."), requestCode);
     }
 
     static private void createUploadItems(View view, final Activity ac) {
         Log.d(TAG, "Show upload items");
+
+        if (ProfileManager.user_mode == -1) {
+            ProfileManager.getUserMode(Session.GetInstance());
+        }
 
         if (attachlay != null) {
             Log.d(TAG, "Show attach icon");
@@ -159,9 +163,11 @@ public class ClientActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     fh = new FileHandler();
+
                     showFileChooser(ac, PICK_FILE_REQUEST1, null, null);
                 }
             });
+
         }
 
         if (uploadlay != null) {
@@ -179,23 +185,28 @@ public class ClientActivity extends AppCompatActivity {
     }
 
 
-    private static void uploadFileDirect(String request_id, String column) {
+    private static void uploadFileDirect(String request_id, String column, String reName) {
         Log.d(TAG, "Display progress bar");
         if (fh == null) {
             Log.e(TAG, "fh == null");
         }
 
-        dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
-
         //Generate json format
         JSONObject req = new JSONObject();
         req.put("id", Integer.parseInt(request_id));
         req.put("column", column);
+
         String[] truncatedFilePath = selectedFilePath.split("/");
         String fileName = truncatedFilePath[truncatedFilePath.length - 1];
-        req.put("path", fileName);
-        Log.d(TAG, request_id+", " + column +", File rename: " + fileName);
+        if (reName == null) {
+            dialog = ProgressDialog.show(mContext, "", "Uploading File...", true);
+            req.put("path", fileName);
+        } else {
+            req.put("path", reName);
+            fileName = reName;
+        }
 
+        Log.d(TAG, request_id + ", " + column + ", File rename: " + fileName);
         RequestManager.uploadData(Session.GetInstance(), req);
         FileHandler.createUploadThread(mContext, null, selectedFilePath, wakeLock, fileName);
         selectedFilePath = null;
@@ -220,23 +231,31 @@ public class ClientActivity extends AppCompatActivity {
 
         if (ProfileManager.user_mode == ProfileManager.USER_MODE.REQUESTER) {
 
-        //req.put("id", Login.id);
-        req.put("subject", subjectEdit.getText().toString());
-        req.put("target_language", RequestManager.getLanuageNum((String)lang.getSelectedItem()));
-        req.put("doc_type", type.getSelectedItem());
-        req.put("level", level.getSelectedItem());
-        req.put("cost", payment.getSelectedItem());
-        req.put("due_date", dueDate);
+            //req.put("id", Login.id);
+            req.put("subject", subjectEdit.getText().toString());
+            req.put("target_language", RequestManager.getLanuageNum((String) lang.getSelectedItem()));
+            req.put("doc_type", type.getSelectedItem());
+            req.put("level", level.getSelectedItem());
+            req.put("cost", payment.getSelectedItem());
+            req.put("due_date", dueDate);
 
-        //Get user mode from server
+            //Get user mode from server
             fileName = "1_" + fileName;
             req.put("source_doc_path", fileName);
         } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.TRANSLATOR) {
             fileName = "2_" + fileName;
             req.put("translated_doc_path", fileName);
+            String list = (String) subject.getSelectedItem();
+            Log.d(TAG, "TRANSLATOR - Selected ID: " + list);
+            uploadFileDirect(workListMap.get(list), "translated_doc_path", fileName);
+            return;
         } else if (ProfileManager.user_mode == ProfileManager.USER_MODE.REVIEWER) {
             fileName = "3_" + fileName;
             req.put("reviewed_doc_path", fileName);
+            String list = (String) subject.getSelectedItem();
+            Log.d(TAG, "REVIEWER - Selected ID: " + list);
+            uploadFileDirect(workListMap.get(list), "reviewed_doc_path", fileName);
+            return;
         } else {
             req.put("source_doc_path", fileName);
         }
@@ -257,6 +276,7 @@ public class ClientActivity extends AppCompatActivity {
 
         new Notifier(Notifier.Command.LIST_OF_CANDIDATES, request_id, mContext); // To get notification of candidate reviewers.
     }
+
     private static void createSpinners(View view) {
 
         type = (Spinner) view.findViewById(R.id.spinner_type);
@@ -456,15 +476,26 @@ public class ClientActivity extends AppCompatActivity {
             payText.setVisibility(View.VISIBLE);
             datelay.setVisibility(View.VISIBLE);
             //dateBt.setVisibility(View.VISIBLE);
-            langText.setText("Language : " + obj.get("target_language"));
+            String lang = (String) obj.get("target_language");
+            if (lang.equals("0")) {
+                lang = "Korean";
+            } else if (lang.equals("1")) {
+                lang = "English";
+            } else if (lang.equals("2")) {
+                lang = "Chinese";
+            } else if (lang.equals("3")) {
+                lang = "Japanese";
+            }
+            langText.setText("Language : " + lang);
             typeText.setText("Type : " + obj.get("doc_type"));
             levelText.setText("Level : " + obj.get("level"));
-            payText.setText("Payment : " + obj.get("cost"));
-            dateBt.setText("Due to " + obj.get("due_date"));
+            payText.setText("Payment : " + obj.get("cost") + " per page");
+            dateBt.setText("Due to : " + obj.get("due_date"));
 
             createUploadItems(v, ac);
         }
     }
+
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     static private void showWorkList(Activity activity, View view, int user_mode) {
         final Activity ac = activity;
@@ -559,14 +590,14 @@ public class ClientActivity extends AppCompatActivity {
             Iterator<Object> itr = request.keySet().iterator();
             while (itr.hasNext()) {
                 Object key = itr.next();
-                String allowedTerm = ItemFilter.GetAllowedTermForRequestColumn((String)key, user_mode);
+                String allowedTerm = ItemFilter.GetAllowedTermForRequestColumn((String) key, user_mode);
                 if (allowedTerm == null) // Filtering
                     continue;
                 String val = (String) request.get(key); // Column
                 Map<String, String> child = new HashMap<String, String>();
                 child.put("ITEM", allowedTerm);
-                child.put("KEY", (String)key);
-                val = val.replace(';',' ');
+                child.put("KEY", (String) key);
+                val = val.replace(';', ' ');
                 if (((String) key).contains("language"))
                     val = RequestManager.getLanuageString(Integer.parseInt(val));
                 child.put("DATA", val);
@@ -833,7 +864,7 @@ public class ClientActivity extends AppCompatActivity {
                 Log.d(TAG, "Selected file:" + selectedFilePath);
                 if (requestCode == PICK_FILE_REQUEST2) {
                     Log.d(TAG, "Upload file directly");
-                    uploadFileDirect(upload_file_request_id,upload_file_column);
+                    uploadFileDirect(upload_file_request_id, upload_file_column, null);
                 }
 
 /*                if (selectedFilePath != null && !selectedFilePath.isEmpty()) {
@@ -919,11 +950,11 @@ public class ClientActivity extends AppCompatActivity {
         final private int mUserMode;
 
         public customExpandableListAdapter(Context context,
-                                    List<? extends Map<String, ?>> groupData, int groupLayout,
-                                    String[] groupFrom, int[] groupTo,
-                                    List<? extends List<? extends Map<String, ?>>> childData,
-                                    int childLayout, String[] childFrom, int[] childTo,
-                                    ExpandableListView expListView, int userMode) {
+                                           List<? extends Map<String, ?>> groupData, int groupLayout,
+                                           String[] groupFrom, int[] groupTo,
+                                           List<? extends List<? extends Map<String, ?>>> childData,
+                                           int childLayout, String[] childFrom, int[] childTo,
+                                           ExpandableListView expListView, int userMode) {
             super(context, groupData, groupLayout, groupLayout, groupFrom, groupTo, childData,
                     childLayout, childLayout, childFrom, childTo);
             mChildData = childData;
@@ -1022,6 +1053,7 @@ public class ClientActivity extends AppCompatActivity {
             apply_btn.setTag(R.id.request_apply_btn, groupdata.get("ID"));
             apply_btn.setTag(R.id.request_apply_btn + 1, groupPosition);
         }
+
         @Override
         public View getChildView(int groupPosition, int childPosition, boolean isLastChild,
                                  View convertView, ViewGroup parent) {
@@ -1037,7 +1069,7 @@ public class ClientActivity extends AppCompatActivity {
         }
 
         private String getAnotherChildData(String target, int groupPosition) {
-            List<Map<String, String>> children = (List<Map<String, String>>)mChildData.get(groupPosition);
+            List<Map<String, String>> children = (List<Map<String, String>>) mChildData.get(groupPosition);
             Iterator<Map<String, String>> itr = children.iterator();
             while (itr.hasNext()) {
                 Map<String, String> key = itr.next();
@@ -1054,7 +1086,7 @@ public class ClientActivity extends AppCompatActivity {
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
                 target = "translator_candidate_list";
                 target2 = "translator_id";
-            }else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
+            } else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
                 target = "reviewer_candidate_list";
                 target2 = "reviewer_id";
                 Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
@@ -1063,7 +1095,7 @@ public class ClientActivity extends AppCompatActivity {
                     select_btn.setVisibility(View.GONE);
                     return;
                 }
-            }else {
+            } else {
                 select_btn.setVisibility(View.GONE);
                 return;
             }
@@ -1102,8 +1134,8 @@ public class ClientActivity extends AppCompatActivity {
                             // Show candidates list on Dialog  , String candidates = view.getTag();
                             Intent intent = new Intent();
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            intent.putExtra("candidates_list", (String)view.getTag(R.id.select_worker_btn));
-                            intent.putExtra("request_id", (String)view.getTag());
+                            intent.putExtra("candidates_list", (String) view.getTag(R.id.select_worker_btn));
+                            intent.putExtra("request_id", (String) view.getTag());
                             intent.setClassName(AccessManager.LTS_PACKAGE_NAME, AccessManager.SELWKR_CLASS_NAME);
                             mContext.startActivity(intent);
                         }
@@ -1120,14 +1152,14 @@ public class ClientActivity extends AppCompatActivity {
             String worker_id = null;
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
                 worker_id = getAnotherChildData("requester_id", groupPosition);
-            }else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
+            } else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
                 worker_id = getAnotherChildData("translator_id", groupPosition);
-            }else {
+            } else {
                 worker_id = getAnotherChildData("reviewer_id", groupPosition);
             }
 
-            String myid = (mMyprofile != null ? (String)(mMyprofile.get("id")) : null);
-            if (worker_id == null || myid == null || worker_id.equals(myid)==false) { // TODO: Only If I involved to this work.
+            String myid = (mMyprofile != null ? (String) (mMyprofile.get("id")) : null);
+            if (worker_id == null || myid == null || worker_id.equals(myid) == false) { // TODO: Only If I involved to this work.
                 download_btn.setVisibility(View.GONE);
                 return;
             }
@@ -1139,13 +1171,13 @@ public class ClientActivity extends AppCompatActivity {
                 all_doc_path.add("reviewed_doc_path");
                 all_doc_path.add("final_doc_path");
             }
-            
+
             if (false == all_doc_path.contains(childdata.get("KEY"))
-                || true == childdata.get("DATA").isEmpty()) {
+                    || true == childdata.get("DATA").isEmpty()) {
                 download_btn.setVisibility(View.GONE);
                 return;
             }
-            
+
             enableButton(download_btn, "Download");
             download_btn.setTag(childdata.get("DATA")); // Download path
             download_btn.setOnClickListener(new View.OnClickListener() {
@@ -1171,14 +1203,14 @@ public class ClientActivity extends AppCompatActivity {
             String worker_id = null;
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
                 worker_id = getAnotherChildData("requester_id", groupPosition);
-            }else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
+            } else if (mUserMode == ProfileManager.USER_MODE.TRANSLATOR) {// if current user is translator
                 worker_id = getAnotherChildData("translator_id", groupPosition);
-            }else {
+            } else {
                 worker_id = getAnotherChildData("reviewer_id", groupPosition);
             }
 
-            String myid = (mMyprofile != null ? (String)(mMyprofile.get("id")) : null);
-            if (worker_id == null || myid == null || worker_id.equals(myid)==false) { // TODO: Only If I involved to this work.
+            String myid = (mMyprofile != null ? (String) (mMyprofile.get("id")) : null);
+            if (worker_id == null || myid == null || worker_id.equals(myid) == false) { // TODO: Only If I involved to this work.
                 upload_btn.setVisibility(View.GONE);
                 return;
             }
@@ -1197,14 +1229,14 @@ public class ClientActivity extends AppCompatActivity {
                 return;
             }
 
-            switch(mUserMode) {
+            switch (mUserMode) {
                 case ProfileManager.USER_MODE.REQUESTER:
                     if (false == childdata.get("KEY").equals("source_doc_path"))
                         return;
                     break;
                 case ProfileManager.USER_MODE.TRANSLATOR:
                     if (false == childdata.get("KEY").equals("translated_doc_path")
-                        && false == childdata.get("KEY").equals("final_doc_path"))
+                            && false == childdata.get("KEY").equals("final_doc_path"))
                         return;
                     break;
                 case ProfileManager.USER_MODE.REVIEWER:
@@ -1221,21 +1253,21 @@ public class ClientActivity extends AppCompatActivity {
             String request_id = groupdata.get("ID");
             Log.d(TAG, "getAnotherChildData request_id:" + request_id);
             upload_btn.setTag(R.id.upload_btn, request_id); // request_id
-            upload_btn.setTag(R.id.upload_btn+1, childdata.get("KEY")); // column
+            upload_btn.setTag(R.id.upload_btn + 1, childdata.get("KEY")); // column
             upload_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Log.d(TAG, "Upload onClick");
                     fh = new FileHandler();
                     upload_btn.setVisibility(View.GONE);
-                    String request_id = (String)view.getTag(R.id.upload_btn);
-                    String column = (String)view.getTag(R.id.upload_btn+1);
+                    String request_id = (String) view.getTag(R.id.upload_btn);
+                    String column = (String) view.getTag(R.id.upload_btn + 1);
                     showFileChooser(mActivity, PICK_FILE_REQUEST2, request_id, column);
                 }
             });
             upload_btn.setVisibility(View.VISIBLE);
         }
-        
+
         private void disableButton(final Button btn, String text) {
             btn.setText(text);
             btn.setOnClickListener(null);
@@ -1352,7 +1384,7 @@ public class ClientActivity extends AppCompatActivity {
                             new DatePickerDialog.OnDateSetListener() {
                                 @Override
                                 public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                                    dueDate = year + "-" + monthOfYear + "-" + dayOfMonth;
+                                    dueDate = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
                                     Toast.makeText(mContext, dueDate, Toast.LENGTH_SHORT).show();
                                 }
                             };
