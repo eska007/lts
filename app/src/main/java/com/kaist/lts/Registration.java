@@ -53,7 +53,7 @@ public class Registration extends AppCompatActivity {
 
         mainHandler = new MessageHandler();
 
-        if (!Login.reg_id) {
+        if (!Login.reg_id && Login.id != null && !Login.id.isEmpty()) {
             Log.d(TAG, "Skip to fill out ID and PW");
             findViewById(R.id.id).setVisibility(View.GONE);
             findViewById(R.id.pw).setVisibility(View.GONE);
@@ -108,7 +108,7 @@ public class Registration extends AppCompatActivity {
                     @Override
                     public void run() {
                         JSONObject json;
-                        if (!Login.id.isEmpty()) {
+                        if (Login.id != null && !Login.id.isEmpty()) {
                             json = generateJson(Login.id, null, Login.given_name, Login.sur_name, phone, email, country, address);
                         } else {
                             json = generateJson(id, password, name, surname, phone, email, country, address);

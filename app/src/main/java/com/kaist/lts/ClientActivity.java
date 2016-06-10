@@ -743,15 +743,16 @@ public class ClientActivity extends AppCompatActivity {
         mActivity = this;
         super.onCreate(savedInstanceState);
 
-        if (mMyprofile == null) {
-            Log.e(TAG, "No response from ProfileManager.getMyInfo");
-        }
-
         if (android.os.Build.VERSION.SDK_INT > 9) {
             StrictMode.ThreadPolicy policy =
                     new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
         }
+
+        if (mMyprofile == null) {
+            mMyprofile = ProfileManager.getMyInfo(Session.GetInstance());
+        }
+
 
         //Create Handler
         mHandler = new Handler() {
@@ -800,6 +801,14 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //Login.status = false;
+        //mMyprofile = null;
+        //myWorkInfo = null;
+    }
+
+    @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
 
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
@@ -828,6 +837,11 @@ public class ClientActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Log.d(TAG, "Right: Logout");
+
+                            Login.status = false;
+                            mMyprofile = null;
+                            myWorkInfo = null;
+
                             MainActivity.callFacebookLogout();
                             moveTaskToBack(true);
                             finish();
@@ -1408,6 +1422,7 @@ public class ClientActivity extends AppCompatActivity {
 
             if (mMyprofile == null)
                 mMyprofile = ProfileManager.getMyInfo(Session.GetInstance());
+
             View rootView = inflater.inflate(R.layout.fragment_client, container, false);
             int pageViewNumber = getArguments().getInt(ARG_SECTION_NUMBER);
             int user_mode = ProfileManager.getUserMode(Session.GetInstance());
@@ -1432,6 +1447,12 @@ public class ClientActivity extends AppCompatActivity {
             ScrollView profileLayout = (ScrollView) v.findViewById(R.id.profile_layout);
             profileLayout.setVisibility(View.VISIBLE);
 
+            if (mMyprofile == null) {
+                mMyprofile = ProfileManager.getMyInfo(Session.GetInstance());
+
+                if (mMyprofile == null)
+                    return;
+            }
 
             //String myid = (mMyprofile != null ? (String)(mMyprofile.get("id")) : null);
 
