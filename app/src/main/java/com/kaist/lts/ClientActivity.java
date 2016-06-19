@@ -1162,7 +1162,7 @@ public class ClientActivity extends AppCompatActivity {
 
         @TargetApi(Build.VERSION_CODES.M)
         private void CheckDownloadBtn(View view, Map<String, String> childdata, int groupPosition, int childPosition) {
-            final Button download_btn = (Button) view.findViewById(R.id.download_btn);
+            final ImageView download_btn = (ImageView) view.findViewById(R.id.download_btn);
 
             String worker_id = null;
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
@@ -1193,7 +1193,7 @@ public class ClientActivity extends AppCompatActivity {
                 return;
             }
 
-            enableButton(download_btn, "download");
+            //enableButton(download_btn, "download");
             download_btn.setTag(childdata.get("DATA")); // Download path
             download_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -1213,7 +1213,7 @@ public class ClientActivity extends AppCompatActivity {
 
         @TargetApi(Build.VERSION_CODES.M)
         private void CheckUploadBtn(View view, Map<String, String> childdata, int groupPosition, int childPosition) {
-            final Button upload_btn = (Button) view.findViewById(R.id.upload_btn);
+            final ImageView upload_btn = (ImageView) view.findViewById(R.id.upload_btn);
 
             String worker_id = null;
             if (mUserMode == ProfileManager.USER_MODE.REQUESTER) {
@@ -1262,7 +1262,7 @@ public class ClientActivity extends AppCompatActivity {
                     break;
             }
 
-            enableButton(upload_btn, "upload");
+            //enableButton(upload_btn, "upload");
             Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
 
             String request_id = groupdata.get("ID");

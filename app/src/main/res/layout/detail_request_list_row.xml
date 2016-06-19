@@ -44,7 +44,7 @@
                 android:textColor="@android:color/black"
                 android:visibility="gone" />
 
-            <Button
+            <!--<Button
                 android:id="@+id/download_btn"
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
@@ -62,9 +62,23 @@
                 android:paddingTop="3dp"
                 android:singleLine="true"
                 android:textColor="@android:color/black"
+                android:visibility="gone" />-->
+
+            <ImageView
+                android:id="@+id/download_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:adjustViewBounds="true"
+                android:clickable="true"
+                android:paddingBottom="3dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:paddingTop="3dp"
+                android:src="@drawable/img_download"
                 android:visibility="gone" />
 
-            <Button
+            <!--<Button
                 android:id="@+id/upload_btn"
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
@@ -83,14 +97,28 @@
                 android:paddingTop="3dp"
                 android:singleLine="true"
                 android:textColor="@android:color/black"
+                android:visibility="gone" />-->
+            <ImageView
+                android:id="@+id/upload_btn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:adjustViewBounds="true"
+                android:clickable="true"
+                android:paddingBottom="3dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:paddingTop="3dp"
+                android:src="@drawable/img_upload"
                 android:visibility="gone" />
+
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="15dp"
+            android:layout_marginLeft="5dp"
             android:clickable="false"
             android:gravity="left|center_vertical"
             android:orientation="horizontal">

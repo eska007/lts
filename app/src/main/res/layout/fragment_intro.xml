@@ -8,102 +8,135 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.kaist.lts.Intro$PlaceholderFragment">
 
-    <TextView
-        android:id="@+id/section_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/start_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="63dp"
-        android:clickable="true"
-        android:text="Start"
-        android:visibility="gone" />
+        <TextView
+            android:id="@+id/section_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-    <ImageView
-        android:id="@+id/intro_view1"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_alignParentEnd="false"
-        android:layout_alignParentTop="true"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="93dp"
-        android:src="@drawable/img_find"
-        android:visibility="gone" />
 
-    <ImageView
-        android:id="@+id/intro_view2"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="93dp"
-        android:src="@drawable/img_profile"
-        android:visibility="gone" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center_horizontal">
 
-    <ImageView
-        android:id="@+id/intro_view3"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="93dp"
-        android:src="@drawable/img_noti"
-        android:visibility="gone" />
+            <ImageView
+                android:id="@+id/intro_view1"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_alignParentEnd="false"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center"
+                android:src="@drawable/img_find"
+                android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/intro_view1_dsc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/intro_view1"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="false"
-        android:layout_below="@+id/intro_view1"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="54dp"
-        android:text="Linked Translator System is easy to find the best matched person."
-        android:textAlignment="center"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/colorPrimaryDark"
-        android:textStyle="italic"
-        android:visibility="gone" />
+            <ImageView
+                android:id="@+id/intro_view2"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="center"
+                android:src="@drawable/img_profile"
+                android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/intro_view2_dsc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/intro_view2"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="false"
-        android:layout_below="@+id/intro_view2"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="54dp"
-        android:text="Linked Translator System support to update your profile automatically"
-        android:textAlignment="center"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/colorPrimaryDark"
-        android:textStyle="italic"
-        android:visibility="gone" />
+            <ImageView
+                android:id="@+id/intro_view3"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="center"
+                android:src="@drawable/img_noti"
+                android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/intro_view3_dsc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/intro_view3"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentStart="false"
-        android:layout_below="@+id/intro_view3"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="54dp"
-        android:text="Linked Translator System notify new jobs for you forever"
-        android:textAlignment="center"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="@color/colorPrimaryDark"
-        android:textStyle="italic"
-        android:visibility="gone" />
+        </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="center_vertical|center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/intro_view1_dsc"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_alignEnd="@+id/intro_view1"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentStart="false"
+                android:layout_below="@+id/intro_view1"
+                android:layout_centerInParent="true"
+                android:gravity="center_vertical"
+                android:text="Linked Translator System is easy to find the best matched person."
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/colorPrimaryDark"
+                android:textStyle="italic"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/intro_view2_dsc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@+id/intro_view2"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentStart="false"
+                android:layout_below="@+id/intro_view2"
+                android:layout_centerInParent="true"
+                android:gravity="center_vertical"
+                android:text="Linked Translator System support to update your profile automatically"
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/colorPrimaryDark"
+                android:textStyle="italic"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/intro_view3_dsc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignEnd="@+id/intro_view3"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentStart="false"
+                android:layout_below="@+id/intro_view3"
+                android:layout_centerInParent="true"
+                android:gravity="center_vertical"
+                android:text="Linked Translator System notify new jobs for you forever"
+                android:textAlignment="center"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/colorPrimaryDark"
+                android:textStyle="italic"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:gravity="top|center"
+            android:visibility="visible">
+
+            <Button
+                android:id="@+id/start_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+
+                android:clickable="true"
+                android:text="Start"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
 </RelativeLayout>
