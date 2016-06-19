@@ -2,81 +2,133 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="horizontal"
     android:weightSum="1">
+
+    <!---android:layout_toRightOf="@id/detail_req_list"-->
 
     <LinearLayout
         android:id="@+id/detail_req_list"
-        android:orientation="horizontal"
-        android:layout_width="360dp"
-        android:layout_height="wrap_content">
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:orientation="horizontal">
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Small Text"
-            android:id="@+id/detail_req_list_item"
-            android:textSize="20dp"
-            android:layout_marginLeft="30dp"
-            android:textColor="#000000"/>
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center"
+            android:layout_marginBottom="3dp"
+            android:layout_marginTop="3dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/detail_req_list_colon"
-            android:text=": "
-            android:textSize="20dp"
-            android:textColor="#000000"/>
+            <Button
+                android:id="@+id/select_worker_btn"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="center"
+                android:layout_margin="1dp"
+                android:layout_marginBottom="1dp"
+                android:layout_marginTop="1dp"
+                android:baselineAligned="false"
+                android:focusable="false"
+                android:gravity="center_vertical|center_horizontal"
+                android:paddingBottom="3dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:paddingTop="3dp"
+                android:singleLine="true"
+                android:textColor="@android:color/black"
+                android:visibility="gone" />
 
-        <TextView
-            android:layout_width="wrap_content"
+            <Button
+                android:id="@+id/download_btn"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginBottom="1dp"
+                android:layout_marginTop="1dp"
+                android:baselineAligned="false"
+                android:ellipsize="none"
+                android:focusable="false"
+                android:gravity="center_vertical|center_horizontal"
+                android:paddingBottom="3dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:paddingTop="3dp"
+                android:singleLine="true"
+                android:textColor="@android:color/black"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/upload_btn"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="center"
+                android:layout_marginBottom="1dp"
+                android:layout_marginTop="1dp"
+                android:baselineAligned="false"
+                android:ellipsize="none"
+                android:focusable="false"
+                android:gravity="center_vertical|center_horizontal"
+                android:paddingBottom="3dp"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
+                android:paddingTop="3dp"
+                android:singleLine="true"
+                android:textColor="@android:color/black"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Small Text"
-            android:id="@+id/detail_req_list_data"
-            android:textSize="20dp"
-            android:textColor="#000000"/>
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="15dp"
+            android:clickable="false"
+            android:gravity="left|center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/detail_req_list_item"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:ellipsize="marquee"
+                android:singleLine="true"
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/detail_req_list_colon"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+
+                android:ellipsize="marquee"
+                android:gravity="center"
+                android:singleLine="true"
+                android:text=" : "
+                android:textColor="@android:color/black" />
+
+            <TextView
+                android:id="@+id/detail_req_list_data"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+
+                android:ellipsize="end"
+                android:enabled="false"
+                android:focusable="false"
+                android:gravity="center_vertical"
+                android:singleLine="true"
+                android:textColor="@color/colorPrimaryDark" />
+
+        </LinearLayout>
+
         <!--android:layout_toRightOf="@id/detail_req_list_colon"-->
     </LinearLayout>
 
-    <Button
-        android:id="@+id/select_worker_btn"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="70dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_vertical"
-        android:baselineAligned="false"
-        android:focusable="false"
-        android:visibility="gone"
-        android:text="Select"
-        android:textSize="10dp"
-        android:textColor="#000000" />
-
-    <Button
-        android:id="@+id/download_btn"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="70dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_vertical"
-        android:baselineAligned="false"
-        android:focusable="false"
-        android:visibility="gone"
-        android:text="Download"
-        android:textSize="10dp"
-        android:textColor="#000000" />
-
-    <Button
-        android:id="@+id/upload_btn"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="70dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentRight="true"
-        android:layout_gravity="center_vertical"
-        android:baselineAligned="false"
-        android:focusable="false"
-        android:visibility="gone"
-        android:text="Download"
-        android:textSize="10dp"
-        android:textColor="#000000" />
-    <!---android:layout_toRightOf="@id/detail_req_list"-->
 </LinearLayout>

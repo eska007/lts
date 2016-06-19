@@ -619,6 +619,7 @@ public class ClientActivity extends AppCompatActivity {
                 new int[]{R.id.detail_req_list_item, R.id.detail_req_list_data},
                 mExpListView, user_mode)
         );
+
         Log.d(TAG, "SetAdaptor");
         mExpListView.setVisibility(View.VISIBLE);
     }
@@ -1192,7 +1193,7 @@ public class ClientActivity extends AppCompatActivity {
                 return;
             }
 
-            enableButton(download_btn, "Download");
+            enableButton(download_btn, "download");
             download_btn.setTag(childdata.get("DATA")); // Download path
             download_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -1261,7 +1262,7 @@ public class ClientActivity extends AppCompatActivity {
                     break;
             }
 
-            enableButton(upload_btn, "Upload");
+            enableButton(upload_btn, "upload");
             Map<String, String> groupdata = (Map<String, String>) super.getGroup(groupPosition);
 
             String request_id = groupdata.get("ID");
@@ -1286,8 +1287,10 @@ public class ClientActivity extends AppCompatActivity {
             btn.setText(text);
             btn.setOnClickListener(null);
             btn.setClickable(false);
-            if (text.equals("Employed"))
+            if (text.equals("Employed")) {
                 btn.setBackgroundColor(0xFF5167D6);
+                btn.setTextColor(0xFFFFFFFF);
+            }
             else if (text.equals("Evaluated"))
                 btn.setBackgroundColor(0xFF5147D6);
             else

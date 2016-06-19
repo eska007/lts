@@ -241,7 +241,7 @@
                     android:layout_centerHorizontal="true"
                     android:background="#039be5"
                     android:gravity="center"
-                    android:text="SEND"
+                    android:text="REQUEST"
                     android:textColor="#fff"
                     android:textSize="20sp"
                     android:textStyle="bold"
@@ -522,7 +522,7 @@
         <TextView
             android:id="@+id/frag_exp_list_view_title1"
             android:layout_width="50dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_margin="1dp"
             android:background="#96d3ff"
             android:gravity="center_vertical|center_horizontal"
@@ -533,7 +533,7 @@
         <TextView
             android:id="@+id/frag_exp_list_view_title2"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_margin="1dp"
             android:layout_toRightOf="@id/frag_exp_list_view_title1"
             android:background="#96d3ff"
