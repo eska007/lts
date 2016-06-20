@@ -268,13 +268,19 @@ public class ClientActivity extends AppCompatActivity {
     }
 
     static public void updateNotifyMsg(JSONObject req) {
+        int reqId = sendNewRequest(req);
+        if (reqId != 0) {
+            new Notifier(Notifier.Command.LIST_OF_CANDIDATES, reqId, mContext); // To get notification of candidate reviewers.
+        }
+    }
+
+    static private int sendNewRequest(JSONObject req) {
         int request_id = RequestManager.addNewRequest(Session.GetInstance(), req);
         if (request_id <= 0) {
             Log.e(TAG, "Fail to Add new request, id:" + Integer.toString(request_id));
-            return;
+            return 0;
         }
-
-        new Notifier(Notifier.Command.LIST_OF_CANDIDATES, request_id, mContext); // To get notification of candidate reviewers.
+        return request_id;
     }
 
     private static void createSpinners(View view) {
@@ -1459,30 +1465,30 @@ public class ClientActivity extends AppCompatActivity {
 
             //String myid = (mMyprofile != null ? (String)(mMyprofile.get("id")) : null);
 
-            EditText idEdit = (EditText) v.findViewById(R.id.et_id);
-            idEdit.setText((String) mMyprofile.get("id"));
+            TextView id = (TextView) v.findViewById(R.id.id);
+            id.setText("ID : " + mMyprofile.get("id"));
 
-            EditText givenNameEdit = (EditText) v.findViewById(R.id.et_names);
+            final EditText givenNameEdit = (EditText) v.findViewById(R.id.et_names);
             givenNameEdit.setText((String) mMyprofile.get("family_name"));
 
-            EditText surNameEdit = (EditText) v.findViewById(R.id.et_surname);
+            final EditText surNameEdit = (EditText) v.findViewById(R.id.et_surname);
             surNameEdit.setText((String) mMyprofile.get("first_name"));
 
-            EditText emailEdit = (EditText) v.findViewById(R.id.et_email);
+            final EditText emailEdit = (EditText) v.findViewById(R.id.et_email);
             emailEdit.setText((String) mMyprofile.get("email"));
 
-            EditText phoneEdit = (EditText) v.findViewById(R.id.et_phone);
+            final EditText phoneEdit = (EditText) v.findViewById(R.id.et_phone);
             phoneEdit.setText((String) mMyprofile.get("phone"));
 
-            EditText countryEdit = (EditText) v.findViewById(R.id.et_country);
+            final EditText countryEdit = (EditText) v.findViewById(R.id.et_country);
             countryEdit.setText((String) mMyprofile.get("country"));
 
-            EditText addressEdit = (EditText) v.findViewById(R.id.et_address);
+            final EditText addressEdit = (EditText) v.findViewById(R.id.et_address);
             addressEdit.setText((String) mMyprofile.get("address"));
 
             String sex = (String) mMyprofile.get("sex");
 
-            CheckBox ckBox;
+            final CheckBox ckBox;
 
             if (sex.equals("1")) {
                 ckBox = (CheckBox) v.findViewById(R.id.btn_woman);
@@ -1491,6 +1497,31 @@ public class ClientActivity extends AppCompatActivity {
                 ckBox = (CheckBox) v.findViewById(R.id.btn_man);
                 ckBox.setChecked(true);
             }
+
+            Button modify = (Button) v.findViewById(R.id.btn_modify);
+            modify.setOnClickListener(new Button.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    JSONObject profiles = new JSONObject();
+                    String id = (String) mMyprofile.get("id");
+                    profiles.put("id", id);
+                    profiles.put("family_name", givenNameEdit.getText().toString());
+                    profiles.put("first_name", surNameEdit.getText().toString());
+                    profiles.put("email", emailEdit.getText().toString());
+                    profiles.put("phone", phoneEdit.getText().toString());
+                    profiles.put("country", countryEdit.getText().toString());
+                    profiles.put("address", addressEdit.getText().toString());
+
+                    ISession.RetVal ret = RequestManager.updateProfiles(Session.GetInstance(), profiles);
+
+                    if (ret == ISession.RetVal.RET_OK) {
+                        Toast.makeText(mContext, "Success to update " + id + "'s profiles", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(mContext, "Error to update " + id + "'s profiles", Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+            });
         }
     }
 

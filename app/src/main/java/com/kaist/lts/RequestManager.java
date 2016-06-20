@@ -64,6 +64,14 @@ public class RequestManager {
         return ret;
     }
 
+    public static ISession.RetVal updateProfiles(ISession cs, JSONObject input) {
+        input.put("command", "UPDATE_PROFILES");
+        JSONObject output = new JSONObject();
+        ISession.RetVal ret = cs.SendRequest(input, output);
+        Log.d(TAG, "UPDATE_PROFILES result : " + ret + ", output : " + output.toString());
+        return ret;
+    }
+
     public static JSONObject getRequestInfo(ISession cs, int request_id /*request_id will be provided by Notifier(NEW_TRANSLATION_REQUEST) */) {
         if (cs == null)
             return null;
